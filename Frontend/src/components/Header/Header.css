@@ -1,0 +1,42 @@
+/* Header.css chuẩn */
+.header-wrapper {
+  height: 80px; /* Cao cố định 80px */
+  background-color: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05); /* Bóng đổ nhẹ */
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Căn giữa menu */
+  width: 100%;
+  position: relative;
+  z-index: 100; /* Luôn nổi lên trên */
+  border-bottom: 1px solid #eee;
+}
+
+.header-nav {
+  display: flex;
+  gap: 60px; /* Khoảng cách giữa các chữ rộng thoáng */
+  height: 100%;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #9ca3af; /* Màu xám nhạt */
+  font-weight: 700; /* Chữ đậm */
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  border-bottom: 3px solid transparent; /* Để dành chỗ cho gạch chân */
+  transition: all 0.3s ease;
+  padding: 0 5px;
+}
+
+.nav-link:hover {
+  color: #374151; /* Màu xám đậm hơn khi di chuột */
+}
+
+/* Style khi đang chọn (Active) */
+.nav-link.active {
+  color: #000000; /* Màu đen tuyền */
+  border-bottom: 3px solid #000000; /* Gạch chân đen đậm sát đáy */
+}

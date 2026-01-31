@@ -1,0 +1,164 @@
+:root {
+  --sidebar-width: 260px;
+  --bg-body: #f4f7fe;
+  --text-dark: #2b3674;
+  --text-gray: #a3aed0;
+}
+
+.page-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-body);
+  overflow: hidden;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.page-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.dashboard-header {
+  display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;
+}
+.welcome-title { font-size: 30px; font-weight: 700; color: var(--text-dark); margin: 0; }
+.welcome-sub { font-size: 14px; color: var(--text-gray); margin: 5px 0 0 0; }
+.wave { animation: wave 2.5s infinite; display: inline-block; transform-origin: 70% 70%; }
+@keyframes wave { 0% { transform: rotate( 0.0deg) } 10% { transform: rotate(14.0deg) } 20% { transform: rotate(-8.0deg) } 30% { transform: rotate(14.0deg) } 40% { transform: rotate(-4.0deg) } 50% { transform: rotate(10.0deg) } 60% { transform: rotate( 0.0deg) } 100% { transform: rotate( 0.0deg) } }
+
+.live-badge {
+  background: white; padding: 8px 16px; border-radius: 30px;
+  font-size: 13px; font-weight: 700; color: #05cd99;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 8px;
+}
+.live-dot { width: 8px; height: 8px; background: #05cd99; border-radius: 50%; animation: pulse-green 2s infinite; }
+@keyframes pulse-green { 0% {box-shadow: 0 0 0 0 rgba(5, 205, 153, 0.4);} 70% {box-shadow: 0 0 0 10px rgba(5, 205, 153, 0);} 100% {box-shadow: 0 0 0 0 rgba(5, 205, 153, 0);} }
+
+
+/* --- CARDS GRID (COLORFUL) --- */
+.cards-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 30px;
+}
+
+.sensor-card {
+  position: relative; overflow: hidden;
+  height: 110px; 
+  border-radius: 15px;
+  background: white;
+  display: flex; align-items: center; gap: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  border: 2px solid transparent;
+}
+
+.sensor-card:hover { transform: translateY(-5px); }
+
+/* Màu sắc riêng cho từng Card */
+.card-temp .icon-box { background: linear-gradient(135deg, #FF416C, #FF4B2B); }
+.card-hum .icon-box { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+.card-light .icon-box { background: linear-gradient(135deg, #F7971E, #FFD200); }
+
+/* Trạng thái Active: Card đổi màu nền gradient nhẹ */
+.sensor-card.active.card-temp { background: linear-gradient(135deg, #FFF5F5, #FFBBAE); border-color: #FF416C; }
+.sensor-card.active.card-hum { background: linear-gradient(135deg, #F5F8FF, #AEF1FF); border-color: #00c6ff; }
+.sensor-card.active.card-light { background: linear-gradient(135deg, #FFFEF5, #FFFBAE); border-color: #F7971E; }
+
+.icon-box {
+  width: 60px; height: 60px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  color: white; flex-shrink: 0;
+}
+
+.card-info { display: flex; flex-direction: column; }
+.card-info .label { font-size: 14px; font-weight: 500; color: var(--text-gray); margin-bottom: 5px; }
+.card-info .value-box { font-size: 32px; font-weight: 700; color: var(--text-dark); }
+.card-info .unit { font-size: 16px; font-weight: 600; color: var(--text-gray); }
+
+/* --- MAIN SECTION --- */
+.main-section { display: flex; gap: 25px; height: 420px; }
+
+/* Chart */
+.chart-container {
+  flex: 1; background: white; border-radius: 20px; padding: 25px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02); display: flex; flex-direction: column;
+}
+.chart-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.section-title { font-size: 18px; font-weight: 700; color: var(--text-dark); margin: 0; }
+.chart-tag { padding: 4px 12px; border-radius: 12px; color: white; font-size: 12px; font-weight: 600; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+.chart-body { flex: 1; width: 100%; min-height: 0; }
+
+/* Controls */
+.controls-container {
+  width: 220px; display: flex; flex-direction: column; gap: 15px;
+}
+
+.control-btn {
+  flex: 1; border: none; border-radius: 20px;
+  background: white; padding: 0 20px;
+  display: flex; align-items: center; gap: 15px;
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  position: relative; overflow: hidden;
+}
+
+.control-btn:hover { transform: scale(1.02); }
+
+.btn-icon {
+  width: 45px; height: 45px; border-radius: 12px;
+  background: #f4f7fe; color: var(--text-gray);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+}
+
+.btn-meta { flex: 1; text-align: left; display: flex; flex-direction: column; }
+.btn-name { font-size: 15px; font-weight: 700; color: var(--text-dark); }
+.btn-status { font-size: 12px; font-weight: 600; color: var(--text-gray); margin-top: 2px; }
+
+.btn-toggle {
+  width: 24px; height: 14px; background: #e0e5f2; border-radius: 20px; position: relative;
+  transition: all 0.3s;
+}
+.btn-toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px;
+  background: white; border-radius: 50%; transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* --- TRẠNG THÁI NÚT KHI BẬT (COLORFUL) --- */
+
+/* Quạt: Màu Xanh Ngọc (Teal/Cyan) */
+.control-btn.btn-fan.on { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.control-btn.btn-fan.on .btn-icon { background: rgba(255,255,255,0.2); color: white; }
+.control-btn.btn-fan.on .btn-name, .control-btn.btn-fan.on .btn-status { color: white; }
+.control-btn.btn-fan.on .btn-toggle { background: rgba(255,255,255,0.3); }
+.control-btn.btn-fan.on .btn-toggle::after { transform: translateX(10px); }
+
+/* Bơm: Màu Xanh Dương Đậm (Blue/Indigo) */
+.control-btn.btn-pump.on { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+.control-btn.btn-pump.on .btn-icon { background: rgba(255,255,255,0.2); color: white; }
+.control-btn.btn-pump.on .btn-name, .control-btn.btn-pump.on .btn-status { color: white; }
+.control-btn.btn-pump.on .btn-toggle { background: rgba(255,255,255,0.3); }
+.control-btn.btn-pump.on .btn-toggle::after { transform: translateX(10px); }
+
+/* Đèn: Màu Vàng Cam (Orange/Yellow) */
+.control-btn.btn-light.on { background: linear-gradient(135deg, #f2994a, #f2c94c); }
+.control-btn.btn-light.on .btn-icon { background: rgba(255,255,255,0.2); color: white; }
+.control-btn.btn-light.on .btn-name, .control-btn.btn-light.on .btn-status { color: white; }
+.control-btn.btn-light.on .btn-toggle { background: rgba(255,255,255,0.3); }
+.control-btn.btn-light.on .btn-toggle::after { transform: translateX(10px); }
+
+/* Animations */
+.spin-anim { animation: spin 2s linear infinite; }
+.bounce-anim { animation: bounce 2s infinite; }
+.glow-anim { animation: pulse-light 2s infinite; }
+@keyframes spin { 100% {transform: rotate(360deg);} }
+@keyframes bounce { 0%, 100% {transform: translateY(0);} 50% {transform: translateY(-3px);} }
+@keyframes pulse-light { 0% {opacity: 1;} 50% {opacity: 0.7;} 100% {opacity: 1;} }

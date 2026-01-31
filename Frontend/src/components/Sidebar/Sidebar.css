@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+
+:root {
+  --sidebar-width: 260px;
+  --text-dark: #2B3674;
+  --text-gray: #A3AED0;
+  --bg-hover: #F4F7FE;
+  --active-gradient: linear-gradient(90deg, #4481EB 0%, #04BEFE 100%);
+  --shadow-active: 0 10px 20px -5px rgba(4, 190, 254, 0.4);
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  height: calc(100vh - 30px);
+  background-color: white;
+  position: fixed;
+  top: 0;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  border-right: none;
+  box-shadow: 14px 0 30px rgba(0,0,0,0.02); 
+  z-index: 50;
+  font-family: 'DM Sans', sans-serif;
+  margin: 15px 0px;
+  border-radius: 15px;
+}
+
+.sidebar-logo {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  gap: 12px;
+  border-bottom: 1px solid transparent;
+  margin-bottom: 10px;
+}
+
+.logo-icon {
+  background: var(--active-gradient);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 4px 10px #4481EB;
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.5px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 15px 25px;
+  text-decoration: none;
+  color: var(--text-gray);
+  border-radius: 15px;
+  font-weight: 500;
+  font-size: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.nav-item:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-dark);
+  transform: translateX(5px);
+}
+
+.nav-item.active {
+  background: var(--active-gradient);
+  color: white;
+  font-weight: 700;
+  box-shadow: var(--shadow-active);
+}
+
+.nav-item.active svg {
+  stroke-width: 2.5px; 
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+}

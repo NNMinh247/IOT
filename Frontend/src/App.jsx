@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import DataSensor from './pages/DataSensor/DataSensor';
 import ActionHistory from './pages/ActionHistory/ActionHistory';
 import Profile from './pages/Profile/Profile';
+import './App.css'
 
 function App() {
   return (

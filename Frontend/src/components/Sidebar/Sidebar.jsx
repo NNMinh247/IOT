@@ -12,7 +12,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-icon">IoT</div>
-        <span className="logo-text">Dashboard</span>
+        <span className="logo-text">MinhFarm</span>
       </div>
 
       {/* Menu */}

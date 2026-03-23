@@ -12,7 +12,6 @@
 /* --- LAYOUT CHÍNH --- */
 .profile-layout {
   display: flex;
-  width: 100vw;
   height: 100vh;
   background-color: var(--bg-body);
   overflow: hidden; /* Chặn scroll body */
@@ -21,9 +20,9 @@
 
 .profile-main {
   flex: 1;
-  margin-left: var(--sidebar-width);
+  margin-left: calc(var(--sidebar-width) + 24px);
   height: 100%;
-  padding: 30px;
+  padding: 15px 30px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -180,27 +179,33 @@
 /* Grid các link tài liệu */
 .doc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 9px 20px ;
 }
 
 .doc-card {
   display: flex;
   align-items: center;
   gap: 15px;
+
+  width: 230px;
+  height: 86px;
+  padding: 0 20px; /* Căn giữa nội dung theo chiều dọc */
+  box-sizing: border-box;
+
   padding: 15px;
   border-radius: 15px;
   background: white;
   border: 1px solid #edf2f7;
   transition: all 0.2s;
   text-decoration: none;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  box-shadow: 3px 5px 5px rgba(0,0,0,0.1);
 }
 
 .doc-card:hover {
   transform: translateY(-3px);
   border-color: var(--primary-blue);
-  box-shadow: 0 8px 15px rgba(67, 24, 255, 0.1);
+  /* box-shadow: 0 8px 15px rgba(67, 24, 255, 0.1); */
 }
 
 .doc-icon-box {

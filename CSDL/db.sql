@@ -1,0 +1,41 @@
+CREATE DATABASE iot;
+USE iot;
+
+CREATE TABLE sensors(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE data_sensors(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    idss INT NOT NULL,
+    value FLOAT NOT NULL,
+    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (idss) REFERENCES sensors(id) ON DELETE CASCADE
+);
+
+CREATE TABLE devices(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE action_history(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    iddv INT NOT NULL,
+    action VARCHAR(20) NOT NULL,
+    status VARCHAR(20) DEFAULT 'WAIT',
+    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (iddv) REFERENCES devices (id) ON DELETE CASCADE
+);
+
+INSERT INTO sensors(name)
+VALUE('Cảm biến nhiệt độ',
+	'Cảm biến độ ẩm',
+	'Cảm biến ánh sáng');
+    
+INSERT INTO devices(name)
+VALUE('Quạt',
+	'Máy bơm',
+    'Đèn');

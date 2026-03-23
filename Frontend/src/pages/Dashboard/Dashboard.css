@@ -154,3 +154,42 @@
 @keyframes spin { 100% {transform: rotate(360deg);} }
 @keyframes bounce { 0%, 100% {transform: translateY(0);} 50% {transform: translateY(-3px);} }
 @keyframes pulse-light { 0% {opacity: 1;} 50% {opacity: 0.7;} 100% {opacity: 1;} }
+
+.control-btn.is-waiting {
+  background: #e9ecef !important; /* Màu xám nhạt */
+  box-shadow: none;
+  cursor: not-allowed;
+  pointer-events: none; /* Khóa hoàn toàn không cho click đúp */
+  border: 1px dashed #ced4da;
+}
+
+/* Icon nhấp nháy mờ ảo khi chờ */
+.control-btn.is-waiting .btn-icon {
+  background: #dee2e6 !important;
+  color: #adb5bd !important;
+  animation: waiting-pulse 1.2s ease-in-out infinite;
+}
+
+/* Chữ chuyển sang màu xám */
+.control-btn.is-waiting .btn-name,
+.control-btn.is-waiting .btn-status {
+  color: #868e96 !important;
+}
+
+/* Nút gạt (Toggle) chuyển về giữa và có màu xám */
+.control-btn.is-waiting .btn-toggle {
+  background: #ced4da !important;
+}
+
+.control-btn.is-waiting .btn-toggle::after {
+  background: #f8f9fa !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important; /* Căn giữa cục tròn */
+  box-shadow: none;
+}
+
+@keyframes waiting-pulse {
+  0% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(0.85); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.5; }
+}

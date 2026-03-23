@@ -40,6 +40,7 @@
   display: flex;
   gap: 15px;
   margin-bottom: 20px;
+  justify-content: flex-end;
   align-items: center;
 }
 
@@ -49,7 +50,7 @@
 
 .pill-btn-dropdown {
   height: 42px;
-  width: 320px;
+  width: 320px !important;
   padding: 0 20px;
   border-radius: 1px;
   background-color: #f4f7fe;

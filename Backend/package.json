@@ -10,7 +10,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "nodemon": "^3.1.11"
+    "mqtt": "^5.15.0",
+    "mysql2": "^3.18.1",
+    "nodemon": "^3.1.11",
+    "socket.io": "^4.8.3"
   }
 }

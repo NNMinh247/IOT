@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import { ChevronDown } from 'lucide-react';
 import './ActionHistory.css';
 
 export default function ActionHistory() {
-  const [allData, setAllData] = useState([]);
-  const [displayData, setDisplayData] = useState([]);
+  const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
+
   const [showFilter, setShowFilter] = useState(false);
   const filterRef = useRef(null);
 
@@ -16,84 +17,82 @@ export default function ActionHistory() {
     timeHH: '', timeMM: '', timeSS: ''
   });
 
+  const fetchData = useCallback(async () => {
+    try {
+      const activeFilters = {};
+      Object.entries(filters).forEach(([key, val]) => {
+        if (val.trim() !== '') activeFilters[key] = val.trim();
+      });
+
+      const queryParams = new URLSearchParams({
+        page: currentPage,
+        limit: itemsPerPage,
+        ...activeFilters
+      });
+
+      const response = await fetch(`http://localhost:5000/api/actions/history?${queryParams.toString()}`);
+      const result = await response.json();
+
+      if (result.success) {
+        const formattedData = result.data.map(item => {
+          const d = new Date(item.time);
+          const pad = (n) => String(n).padStart(2, '0');
+
+          return {
+            id: item.id,
+            device: item.device,
+            action: item.action,
+            status: item.status,
+            date: `${pad(d.getDate())} / ${pad(d.getMonth() + 1)} / ${d.getFullYear()}`,
+            time: `${pad(d.getHours())} : ${pad(d.getMinutes())} : ${pad(d.getSeconds())}`
+          };
+        });
+
+        setData(formattedData);
+        setTotalPages(result.pagination.totalPages);
+      }
+    }
+    catch (error) {
+      console.error("Error: ", error);
+    }
+  }, [currentPage, filters]);
+
+  useEffect(() => {
+    fetchData();
+  }, [currentPage]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterRef.current && !filterRef.current.contains(event.target)) {
         setShowFilter(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const devices = ['Đèn', 'Quạt', 'Máy phun sương'];
-    const actions = ['Bật', 'Tắt'];
-    
-    const fakeData = Array.from({ length: 100 }, (_, i) => {
-      const id = i + 1;
-      const device = devices[Math.floor(Math.random() * devices.length)];
-      const action = actions[Math.floor(Math.random() * actions.length)];
-      const isSuccess = Math.random() > 0.2;
-      const status = isSuccess ? action : 'Chờ'; 
-
-      const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
-      const hour = String(Math.floor(Math.random() * 24)).padStart(2, '0');
-      const min = String(Math.floor(Math.random() * 60)).padStart(2, '0');
-      const sec = String(Math.floor(Math.random() * 60)).padStart(2, '0');
-
-      return {
-        id: id,
-        device: device,
-        action: action,
-        status: status,
-        date: `${day} / 01 / 2026`,
-        time: `${hour} : ${min} : ${sec}`
-      };
-    });
-
-    const reversed = [...fakeData].reverse();
-    setAllData(reversed);
-    setDisplayData(reversed);
+    return () => document.removeEventListener('mosedown', handleClickOutside);
   }, []);
 
   const handleSearch = () => {
-    let result = [...allData];
-
-    if (filters.dateDD || filters.dateMM || filters.dateYYYY) {
-      result = result.filter(item => {
-        const [d, m, y] = item.date.split(' / ');
-        return (!filters.dateDD || d.includes(filters.dateDD)) &&
-              (!filters.dateMM || m.includes(filters.dateMM)) &&
-              (!filters.dateYYYY || y.includes(filters.dateYYYY));
-      });
+    if (currentPage === 1) {
+      fetchData();
     }
-
-    if (filters.timeHH || filters.timeMM || filters.timeSS) {
-      result = result.filter(item => {
-        const [h, mi, s] = item.time.split(' : ');
-        return (!filters.timeHH || h.includes(filters.timeHH)) &&
-              (!filters.timeMM || mi.includes(filters.timeMM)) &&
-              (!filters.timeSS || s.includes(filters.timeSS));
-      });
+    else {
+      setCurrentPage(1);
     }
-
-    setDisplayData(result);
-    setCurrentPage(1);
     setShowFilter(false);
   };
 
-  const totalPages = Math.ceil(displayData.length / itemsPerPage);
-  const currentItems = displayData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
   const renderPaginationButtons = () => {
     const buttons = [];
-    if (totalPages <= 7) { for (let i = 1; i <= totalPages; i++) buttons.push(i); }
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) buttons.push(i);
+    }
     else {
       if (currentPage <= 4) buttons.push(1, 2, 3, 4, 5, '...', totalPages);
       else if (currentPage >= totalPages - 3) buttons.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
       else buttons.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
     }
+
     return buttons;
   };
 
@@ -106,10 +105,7 @@ export default function ActionHistory() {
             <div className="spacer"></div>
             
             <div className="dropdown-container" ref={filterRef}>
-              <button 
-                className={`pill-btn-dropdown ${showFilter ? 'active' : ''}`} 
-                onClick={() => setShowFilter(!showFilter)}
-              >
+              <button className={`pill-btn-dropdown ${showFilter ? 'active' : ''}`} onClick={() => setShowFilter(!showFilter)}>
                 Lọc <ChevronDown size={16} />
               </button>
               
@@ -148,19 +144,30 @@ export default function ActionHistory() {
               <thead>
                 <tr>
                   <th style={{width: '10%'}}>ID</th>
-                  <th style={{width: '30%'}}>Tên thiết bị</th>
-                  <th style={{width: '15%'}}>Hành động</th>
-                  <th style={{width: '15%'}}>Trạng thái</th>
-                  <th style={{width: '30%'}}>Thời gian</th>
+                  <th style={{width: '30%'}}>TÊN THIẾT BỊ</th>
+                  <th style={{width: '15%'}}>HÀNH ĐỘNG</th>
+                  <th style={{width: '15%'}}>TRẠNG THÁI</th>
+                  <th style={{width: '30%'}}>THỜI GIAN</th>
                 </tr>
               </thead>
               <tbody>
-                {currentItems.length > 0 ? currentItems.map((item) => (
+                {data.length > 0 ? data.map((item) => (
                   <tr key={item.id}>
                     <td>{item.id}</td>
-                    <td style={{fontWeight: '600'}}>{item.device}</td>
-                    <td>{item.action}</td>
-                    <td>{item.status}</td>
+                    <td style={{ fontWeight: '600' }}>{item.device}</td>
+                    <td>
+                      <span className={`status-badge ${item.action.toLowerCase() === 'bật' ? 'bg-green' : 'bg-red'}`}>
+                        {item.action}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${
+                        item.status.toLowerCase() === 'thành công' || item.status.toLowerCase() === 'bật' ? 'bg-green' : 
+                        item.status.toLowerCase() === 'tắt' ? 'bg-red' : 'bg-gray'
+                      }`}>
+                        {item.status}
+                      </span>
+                    </td>
                     <td>{item.date} - {item.time}</td>
                   </tr>
                 )) : (

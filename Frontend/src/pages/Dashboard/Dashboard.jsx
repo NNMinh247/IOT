@@ -2,45 +2,129 @@ import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Thermometer, Droplets, Sun, Fan, Lightbulb, CloudRain } from 'lucide-react';
 import Sidebar from '../../components/Sidebar/Sidebar';
+import { io } from 'socket.io-client';
 import './Dashboard.css';
+
+const socket = io('http://localhost:5000');
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
   const [selectedSensor, setSelectedSensor] = useState('temperature');
-  const [currentValues, setCurrentValues] = useState({ temp: 30, hum: 50, light: 247 });
-  const [devices, setDevices] = useState({ fan: false, light: false, pump: false });
+  const [currentValues, setCurrentValues] = useState({ temp: 0, hum: 0, light: 0 });
+  
+  const [devices, setDevices] = useState({ fan: false, pump: false ,light: false });
+  const [loadingDevices, setLoadingDevices] = useState({ fan: false, pump: false, light: false });
 
   const getNowStr = (dateObj) => dateObj.toLocaleTimeString('en-GB');
 
   useEffect(() => {
-    const now = new Date();
-    const initialData = Array.from({ length: 31 }, (_, i) => ({
-      time: getNowStr(new Date(now.getTime() - (30 - i) * 2000)),
-      temp: 0, hum: 0, light: 0
-    }));
-    setData(initialData);
+    const fetchInitialData = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/sensors/data?limit=90&sortKey=time&sortDir=desc');
+        const result = await res.json();
 
-    const interval = setInterval(() => {
-      const newTemp = +(Math.random() * (35 - 20) + 20).toFixed(1);
-      const newHum = Math.floor(Math.random() * (90 - 40) + 40);
-      const newLight = Math.floor(Math.random() * (1000 - 100) + 100);
-      
-      setCurrentValues({ temp: newTemp, hum: newHum, light: newLight });
+        if (result.success && result.data.length > 0) {
+          const groupedData = {};
+
+          result.data.forEach(item => {
+            const d = new Date(item.time);
+            const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+
+            if (!groupedData[timeStr]) {
+              groupedData[timeStr] = { time: timeStr, temp: 0, hum: 0, light: 0 };
+            }
+
+            if (item.name.toLowerCase().includes('nhiệt')) groupedData[timeStr].temp = item.value;
+            else if (item.name.toLowerCase().includes('ẩm')) groupedData[timeStr].hum = item.value;
+            else if (item.name.toLowerCase().includes('sáng')) groupedData[timeStr].light = item.value;
+          });
+
+          const chartData = Object.values(groupedData).reverse();
+          const finalData = chartData.slice(-30);
+          
+          setData(finalData);
+
+          if (finalData.length > 0) {
+            const latest = finalData[finalData.length - 1];
+            setCurrentValues({ temp: latest.temp, hum: latest.hum, light: latest.light });
+          }
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu ban đầu:', error);
+      }
+    };
+    fetchInitialData();
+
+    const fetchDeviceStatus = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/devices/status');
+        const result = await res.json();
+        if (result.success) setDevices(result.data);
+      } catch (err) { console.error(err); }
+    };
+    fetchDeviceStatus();
+
+    socket.on('device_timeout', (data) => {
+        alert(data.message);
+        setLoadingDevices(prev => ({ ...prev, [data.device]: false }));
+    });
+
+    socket.on('update_dashboard', (newDataPoint) => {
+      setCurrentValues({
+        temp: newDataPoint.temp,
+        hum: newDataPoint.hum,
+        light: newDataPoint.light
+      });
 
       setData(prevData => {
-        const newDataPoint = {
-          time: getNowStr(new Date()),
-          temp: newTemp, hum: newHum, light: newLight
-        };
-        return [...prevData.slice(1), newDataPoint];
+        const updatedData = [...prevData, newDataPoint];
+        return updatedData.length > 30 ? updatedData.slice(1) : updatedData;
       });
-    }, 2000);
-    return () => clearInterval(interval);
+    });
+
+    socket.on('device_status_update', (response) => {
+      setDevices({
+        fan: response.led1 === "ON",
+        pump: response.led2 === "ON",
+        light: response.led3 === "ON"
+      });
+      setLoadingDevices({ fan: false, pump: false, light: false });
+    });
+
+    return () => {
+      socket.off('update_dashboard');
+      socket.off('device_status_update');
+      socket.off('device_timeout');
+    };
   }, []);
 
-  const toggleDevice = (device) => setDevices(prev => ({ ...prev, [device]: !prev[device] }));
+  const handleDeviceControl = async (deviceName, deviceId) => {
+    if (loadingDevices[deviceName]) return;
+    setLoadingDevices(prev => ({ ...prev, [deviceName]: true}));
 
-  // Cấu hình màu sắc RỰC RỠ cho biểu đồ
+    const currentStatus = devices[deviceName];
+    const actionToSend = currentStatus ? 'Tắt' : 'Bật';
+
+    try {
+      const res = await fetch('http://localhost:5000/api/devices/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_id: deviceId, action: actionToSend })
+      });
+      const result = await res.json();
+
+      if (!result.success) {
+        alert('Có lỗi xảy ra khi gửi lệnh!');
+        setLoadingDevices({ ...prev, [deviceName]: false});
+      }
+
+    }
+    catch (error) {
+      console.error(error);
+      setLoadingDevices(prev => ({ ...prev, [deviceName]: false }));
+    }
+  };
+  
   const getChartConfig = () => {
     switch (selectedSensor) {
       case 'temperature': 
@@ -153,35 +237,50 @@ export default function Dashboard() {
           <div className="controls-container">
             <h3 className="section-title">Điều khiển</h3>
             
-            <button className={`control-btn btn-fan ${devices.fan ? 'on' : ''}`} onClick={() => toggleDevice('fan')}>
+            <button 
+              className={`control-btn btn-fan ${devices.fan ? 'on' : ''} ${loadingDevices.fan ? 'is-waiting' : ''}`} 
+              onClick={() => handleDeviceControl('fan', 1)}
+            >
               <div className="btn-icon">
-                <Fan size={24} className={devices.fan ? 'spin-anim' : ''} />
+                <Fan size={24} className={devices.fan && !loadingDevices.fan ? 'spin-anim' : ''} />
               </div>
               <div className="btn-meta">
                 <span className="btn-name">Quạt</span>
-                <span className="btn-status">{devices.fan ? 'ĐANG CHẠY' : 'ĐÃ TẮT'}</span>
+                <span className="btn-status">
+                  {loadingDevices.fan ? 'ĐANG CHỜ...' : devices.fan ? 'ĐANG CHẠY' : 'ĐÃ TẮT'}
+                </span>
               </div>
               <div className="btn-toggle"></div>
             </button>
 
-            <button className={`control-btn btn-pump ${devices.pump ? 'on' : ''}`} onClick={() => toggleDevice('pump')}>
+            <button 
+              className={`control-btn btn-pump ${devices.pump ? 'on' : ''} ${loadingDevices.pump ? 'is-waiting' : ''}`} 
+              onClick={() => handleDeviceControl('pump', 2)}
+            >
               <div className="btn-icon">
-                <CloudRain size={24} className={devices.pump ? 'bounce-anim' : ''} />
+                <CloudRain size={24} className={devices.pump && !loadingDevices.pump ? 'bounce-anim' : ''} />
               </div>
               <div className="btn-meta">
                 <span className="btn-name">Máy bơm</span>
-                <span className="btn-status">{devices.pump ? 'ĐANG TƯỚI' : 'ĐÃ TẮT'}</span>
+                <span className="btn-status">
+                  {loadingDevices.pump ? 'ĐANG CHỜ...' : devices.pump ? 'ĐANG TƯỚI' : 'ĐÃ TẮT'}
+                </span>
               </div>
               <div className="btn-toggle"></div>
             </button>
 
-            <button className={`control-btn btn-light ${devices.light ? 'on' : ''}`} onClick={() => toggleDevice('light')}>
+            <button 
+              className={`control-btn btn-light ${devices.light ? 'on' : ''} ${loadingDevices.light ? 'is-waiting' : ''}`} 
+              onClick={() => handleDeviceControl('light', 3)}
+            >
               <div className="btn-icon">
-                <Lightbulb size={24} className={devices.light ? 'glow-anim' : ''} />
+                <Lightbulb size={24} className={devices.light && !loadingDevices.light ? 'glow-anim' : ''} />
               </div>
               <div className="btn-meta">
                 <span className="btn-name">Đèn</span>
-                <span className="btn-status">{devices.light ? 'ĐANG SÁNG' : 'ĐÃ TẮT'}</span>
+                <span className="btn-status">
+                  {loadingDevices.light ? 'ĐANG CHỜ...' : devices.light ? 'ĐANG SÁNG' : 'ĐÃ TẮT'}
+                </span>
               </div>
               <div className="btn-toggle"></div>
             </button>

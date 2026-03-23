@@ -2,7 +2,7 @@ import React from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import { 
   GraduationCap, Phone, Mail, MapPin, 
-  Github, Figma, FileText, Code, Database 
+  Github, Figma, FileText, Code, Database, Send 
 } from 'lucide-react';
 import './Profile.css';
 
@@ -21,7 +21,7 @@ export default function Profile() {
             
             <div className="avatar-container">
               <img 
-                src="https://img.freepik.com/free-vector/young-man-with-glasses-avatar_1308-175763.jpg" 
+                src="..\public\avt.png"
                 alt="User Avatar" 
                 className="avatar-img" 
               />
@@ -84,14 +84,13 @@ export default function Profile() {
             <div className="card-box">
               <h3 className="section-title">Kỹ năng & Công nghệ</h3>
               <div className="skills-container">
-                <span className="skill-tag">C++ / C#</span>
+                <span className="skill-tag">Kỹ năng thuyết trình</span>
+                <span className="skill-tag">Kỹ năng tạo lập văn bản</span>
+                <span className="skill-tag">Kỹ năng làm việc nhóm</span>
+                <span className="skill-tag">C / C++</span>
+                <span className="skill-tag">ReactJS / NodeJS</span>
                 <span className="skill-tag">Unreal Engine 5</span>
-                <span className="skill-tag">ReactJS</span>
-                <span className="skill-tag">Node.js / Express</span>
-                <span className="skill-tag">MySQL / MongoDB</span>
-                <span className="skill-tag">IoT / Arduino</span>
-                <span className="skill-tag">UI/UX Design</span>
-                <span className="skill-tag">Git / Github</span>
+                <span className="skill-tag">Unity</span>
               </div>
             </div>
 
@@ -100,7 +99,7 @@ export default function Profile() {
               <h3 className="section-title">Tài liệu & Báo cáo</h3>
               <div className="doc-grid">
                 
-                <a href="#" className="doc-card">
+                <a href="https://www.figma.com/design/dtC0lhzIrBF0yCNAhuJj8t/IOT?node-id=213-2267&t=4pTvL6eqniei3YLc-1" className="doc-card" target="_blank">
                   <div className="doc-icon-box bg-light-blue">
                     <Figma />
                   </div>
@@ -131,12 +130,12 @@ export default function Profile() {
                 </a>
 
                 <a href="#" className="doc-card">
-                  <div className="doc-icon-box bg-light-green">
-                    <Database />
+                  <div className="doc-icon-box bg-light-orange"> {/* Đổi màu sang cam cho giống Postman */}
+                    <Send size={20} /> {/* Sử dụng icon Send làm đại diện cho Postman */}
                   </div>
                   <div className="doc-info">
                     <span className="doc-name">API Docs</span>
-                    <span className="doc-desc">Swagger UI</span>
+                    <span className="doc-desc">Postman</span>
                   </div>
                 </a>
 

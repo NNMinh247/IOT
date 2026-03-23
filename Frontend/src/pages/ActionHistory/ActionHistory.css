@@ -10,7 +10,7 @@
 
 .history-page-layout {
   display: flex;
-  width: 100vw;
+  /* width: 100vw; */
   height: 100vh;
   overflow: hidden;
   background-color: var(--bg-body);
@@ -19,7 +19,7 @@
 
 .history-main-content {
   flex: 1;
-  margin-left: var(--sidebar-width);
+  margin-left: calc(var(--sidebar-width) + 24px);
   height: 100%;
   padding: 25px;
   box-sizing: border-box;
@@ -178,7 +178,7 @@
   font-size: 13px;
   border-bottom: 1px solid #e2e8f0;
 }
-.history-table td { padding: 16px; font-size: 14px; color: var(--text-dark); }
+.history-table td { padding: 12px; font-size: 14px; color: var(--text-dark); font-weight: 600; }
 .history-table tr { border-bottom: 1px solid #f4f7fe; }
 
 .pagination-wrapper { display: flex; justify-content: flex-end; gap: 8px; }
@@ -188,3 +188,30 @@
 }
 .page-btn.active { background: var(--primary-blue); color: white; }
 .page-btn.dots { background: transparent; cursor: default; }
+
+/* Style cho các ô trạng thái/hành động dạng Badge */
+.status-badge {
+  display: inline-block;
+  padding: 1px 2px;
+  border-radius: 20px; /* Bo tròn y hệt Figma */
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 45px;
+  text-align: center;
+}
+
+/* Màu xanh cho "Bật" */
+.bg-green {
+  background-color: #5AFF9B;
+}
+
+/* Màu đỏ cho "Tắt" */
+.bg-red {
+  background-color: #FF4646;
+}
+
+/* Màu xám cho "Chờ" */
+.bg-gray {
+  background-color: #888888;
+}

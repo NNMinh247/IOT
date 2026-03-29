@@ -109,7 +109,7 @@ export default function Profile() {
                   </div>
                 </a>
 
-                <a href="#" className="doc-card">
+                <a href="https://github.com/NNMinh247/IOT" className="doc-card" target='_blank'>
                   <div className="doc-icon-box bg-light-dark">
                     <Github />
                   </div>
@@ -119,7 +119,7 @@ export default function Profile() {
                   </div>
                 </a>
 
-                <a href="#" className="doc-card">
+                <a href="#" className="doc-card" /*target='_blank'*/>
                   <div className="doc-icon-box bg-light-orange">
                     <FileText />
                   </div>
@@ -129,7 +129,7 @@ export default function Profile() {
                   </div>
                 </a>
 
-                <a href="#" className="doc-card">
+                <a href="#" className="doc-card" /*target='_blank'*/>
                   <div className="doc-icon-box bg-light-orange"> {/* Đổi màu sang cam cho giống Postman */}
                     <Send size={20} /> {/* Sử dụng icon Send làm đại diện cho Postman */}
                   </div>

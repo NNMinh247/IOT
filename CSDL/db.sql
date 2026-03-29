@@ -31,11 +31,20 @@ CREATE TABLE action_history(
 );
 
 INSERT INTO sensors(name)
-VALUE('Cảm biến nhiệt độ',
-	'Cảm biến độ ẩm',
-	'Cảm biến ánh sáng');
+VALUE('Cảm biến nhiệt độ'),
+	('Cảm biến độ ẩm'),
+	('Cảm biến ánh sáng');
     
 INSERT INTO devices(name)
-VALUE('Quạt',
-	'Máy bơm',
-    'Đèn');
+VALUE('Quạt'),
+	('Máy bơm'),
+    ('Đèn');
+    
+SELECT * FROM sensors;
+SELECT * FROM devices;
+SELECT * FROM data_sensors;
+SELECT * FROM action_history;
+
+-- xóa dữ liệu 
+TRUNCATE TABLE data_sensors;
+TRUNCATE TABLE action_history;

@@ -7,7 +7,8 @@ export default function DataSensor() {
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [limitInput, setLimitInput] = useState(10);
 
   const [showFilter, setShowFilter] = useState(false);
   const [showSort, setShowSort] = useState(false);
@@ -22,6 +23,20 @@ export default function DataSensor() {
   const filterRef = useRef(null);
   const sortRef = useRef(null);
 
+  const handleLimitChange = (e) => {
+    setLimitInput(e.target.value); // Chỉ cập nhật số đang gõ trên màn hình, CHƯA gọi API
+  };
+
+  const applyLimit = () => {
+    const num = parseInt(limitInput);
+    if (!isNaN(num) && num > 0 && num <= 1000) {
+      setItemsPerPage(num); // Chốt số lượng thật
+      setCurrentPage(1);    // Quay về trang 1
+    } else {
+      setLimitInput(itemsPerPage); // Nếu người dùng xóa trắng hoặc nhập chữ, tự reset về số cũ
+    }
+  };
+
   const fetchData = useCallback(async () => {
     try {
       const activeFilters = {};
@@ -31,7 +46,7 @@ export default function DataSensor() {
 
       const queryParams = new URLSearchParams({
         page: currentPage,
-        limit: itemsPerPage,
+        limit: itemsPerPage || 10,
         sortKey: sortConfig.key,
         sortDir: sortConfig.direction,
         ...activeFilters
@@ -59,11 +74,11 @@ export default function DataSensor() {
     } catch (error) {
       console.error("Lỗi khi fetch dữ liệu cảm biến:", error);
     }
-  }, [currentPage, sortConfig.key, sortConfig.direction, filters]);
+  }, [currentPage, sortConfig.key, sortConfig.direction, filters, itemsPerPage]);
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, sortConfig.key, sortConfig.direction]);
+  }, [currentPage, sortConfig.key, sortConfig.direction, itemsPerPage]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -201,12 +216,31 @@ export default function DataSensor() {
 
           {/* PHÂN TRANG */}
           <div className="pagination-wrapper">
-            {renderPaginationButtons().map((btn, index) => (
-              <button key={index} className={`page-btn ${btn === currentPage ? 'active' : ''} ${btn === '...' ? 'dots' : ''}`}
-                onClick={() => typeof btn === 'number' && setCurrentPage(btn)} disabled={btn === '...'}>
-                {btn}
-              </button>
-            ))}
+            <div className="limit-selector">
+              {/* Thay thẻ <span> thành thẻ <button> và gắn hàm onClick */}
+              <button className="apply-limit-btn" onClick={applyLimit}>Hiển thị:</button>
+              
+              <input 
+                type="number" 
+                min="1" 
+                max="1000"
+                value={limitInput} 
+                onChange={handleLimitChange}
+                /* Đã xóa onBlur và onKeyDown ở đây */
+                className="limit-input"
+              />
+
+              <span>dòng / trang</span>
+            </div>
+
+            <div className="page-buttons">
+              {renderPaginationButtons().map((btn, index) => (
+                <button key={index} className={`page-btn ${btn === currentPage ? 'active' : ''} ${btn === '...' ? 'dots' : ''}`}
+                  onClick={() => typeof btn === 'number' && setCurrentPage(btn)} disabled={btn === '...'}>
+                  {btn}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

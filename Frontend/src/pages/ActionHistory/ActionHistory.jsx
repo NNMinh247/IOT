@@ -7,7 +7,8 @@ export default function ActionHistory() {
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [limitInput, setLimitInput] = useState(10);
 
   const [showFilter, setShowFilter] = useState(false);
   const filterRef = useRef(null);
@@ -16,6 +17,20 @@ export default function ActionHistory() {
     dateDD: '', dateMM: '', dateYYYY: '',
     timeHH: '', timeMM: '', timeSS: ''
   });
+
+  const handleLimitChange = (e) => {
+    setLimitInput(e.target.value); // Chỉ cập nhật số đang gõ trên màn hình, CHƯA gọi API
+  };
+
+  const applyLimit = () => {
+    const num = parseInt(limitInput);
+    if (!isNaN(num) && num > 0 && num <= 1000) {
+      setItemsPerPage(num); // Chốt số lượng thật
+      setCurrentPage(1);    // Quay về trang 1
+    } else {
+      setLimitInput(itemsPerPage); // Nếu người dùng xóa trắng hoặc nhập chữ, tự reset về số cũ
+    }
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -26,7 +41,7 @@ export default function ActionHistory() {
 
       const queryParams = new URLSearchParams({
         page: currentPage,
-        limit: itemsPerPage,
+        limit: itemsPerPage || 10,
         ...activeFilters
       });
 
@@ -55,11 +70,11 @@ export default function ActionHistory() {
     catch (error) {
       console.error("Error: ", error);
     }
-  }, [currentPage, filters]);
+  }, [currentPage, filters, itemsPerPage]);
 
   useEffect(() => {
     fetchData();
-  }, [currentPage]);
+  }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -178,12 +193,31 @@ export default function ActionHistory() {
           </div>
 
           <div className="pagination-wrapper">
-             {renderPaginationButtons().map((btn, index) => (
-               <button key={index} className={`page-btn ${btn === currentPage ? 'active' : ''} ${btn === '...' ? 'dots' : ''}`}
+            <div className="limit-selector">
+              {/* Thay thẻ <span> thành thẻ <button> và gắn hàm onClick */}
+              <button className="apply-limit-btn" onClick={applyLimit}>Hiển thị:</button>
+              
+              <input 
+                type="number" 
+                min="1" 
+                max="1000"
+                value={limitInput} 
+                onChange={handleLimitChange}
+                /* Đã xóa onBlur và onKeyDown ở đây */
+                className="limit-input"
+              />
+
+              <span>dòng / trang</span>
+            </div>
+
+            <div className="page-buttons">
+              {renderPaginationButtons().map((btn, index) => (
+                <button key={index} className={`page-btn ${btn === currentPage ? 'active' : ''} ${btn === '...' ? 'dots' : ''}`}
                   onClick={() => typeof btn === 'number' && setCurrentPage(btn)} disabled={btn === '...'}>
-                 {btn}
-               </button>
-             ))}
+                  {btn}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

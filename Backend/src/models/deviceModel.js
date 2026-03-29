@@ -35,7 +35,7 @@ const checkAndUpdateTimeout = async (historyId) => {
     const [[row]] = await db.execute(`SELECT status FROM action_history WHERE id = ?`, [historyId]);
 
     if (row && row.status === 'Chờ') {
-        await db.execute(`UPDATE action_history SET status = 'Lỗi' WHERE id = ?`, [historyId]);
+        await db.execute(`UPDATE action_history SET status = 'Thất bại' WHERE id = ?`, [historyId]);
         return true;
     }
 

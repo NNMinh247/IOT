@@ -3,12 +3,17 @@ const actionModel = require('../models/actionModel');
 const getActionHistory = async (req, res) => {
     try {
         const {
-            page = 1, limit = 10,
-            dateDD, dateMM, dateYYYY,
-            timeHH, timeMM, timeSS
+            page = 1, limit = 10, searchTime = '',
+            devices = '1,2,3',
+            actions = 'Bật,Tắt',
+            statuses = 'Thành công, Thất bại, Chờ'
         } = req.query;
 
-        const filters = { dateDD, dateMM, dateYYYY, timeHH, timeMM, timeSS };
+        const filterDevices = devices ? devices.split(',').map(Number) : [];
+        const filterActions = actions ? actions.split(',') : [];
+        const filterStatuses = statuses ? statuses.split(',') : [];
+
+        const filters = { searchTime, devices: filterDevices, actions: filterActions, statuses: filterStatuses };
         const pagination = { page, limit };
 
         const { total, rows } = await actionModel.getActionHistoryAdvanced(filters, pagination);

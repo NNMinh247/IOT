@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Thermometer, Droplets, Sun, Fan, Lightbulb, CloudRain } from 'lucide-react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import { io } from 'socket.io-client';
@@ -9,18 +9,15 @@ const socket = io('http://localhost:5000');
 
 export default function Dashboard() {
   const [data, setData] = useState([]);
-  const [selectedSensor, setSelectedSensor] = useState('temperature');
   const [currentValues, setCurrentValues] = useState({ temp: 0, hum: 0, light: 0 });
   
   const [devices, setDevices] = useState({ fan: false, pump: false ,light: false });
   const [loadingDevices, setLoadingDevices] = useState({ fan: false, pump: false, light: false });
 
-  const getNowStr = (dateObj) => dateObj.toLocaleTimeString('en-GB');
-
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/sensors/data?limit=90&sortKey=time&sortDir=desc');
+        const res = await fetch('http://localhost:5000/api/sensors/data?limit=90&sortKey=time&sortDir=desc&filterBy=temp,hum,light');
         const result = await res.json();
 
         if (result.success && result.data.length > 0) {
@@ -59,7 +56,10 @@ export default function Dashboard() {
       try {
         const res = await fetch('http://localhost:5000/api/devices/status');
         const result = await res.json();
-        if (result.success) setDevices(result.data);
+        if (result.success) {
+          setDevices(result.data);
+          if (result.pending) setLoadingDevices(result.pending);
+        }
       } catch (err) { console.error(err); }
     };
     fetchDeviceStatus();
@@ -115,7 +115,7 @@ export default function Dashboard() {
 
       if (!result.success) {
         alert('Có lỗi xảy ra khi gửi lệnh!');
-        setLoadingDevices({ ...prev, [deviceName]: false});
+        setLoadingDevices(prev => ({ ...prev, [deviceName]: false}));
       }
 
     }
@@ -124,32 +124,14 @@ export default function Dashboard() {
       setLoadingDevices(prev => ({ ...prev, [deviceName]: false }));
     }
   };
-  
-  const getChartConfig = () => {
-    switch (selectedSensor) {
-      case 'temperature': 
-        return { color: '#FF416C', colorEnd: '#FF4B2B', id: 'temp', label: 'Nhiệt độ', unit: '°C', yDomain: [10, 45] };
-      case 'humidity': 
-        return { color: '#00c6ff', colorEnd: '#0072ff', id: 'hum', label: 'Độ ẩm', unit: '%', yDomain: [0, 100] };
-      case 'light': 
-        return { color: '#F7971E', colorEnd: '#FFD200', id: 'light', label: 'Ánh sáng', unit: 'Lux', yDomain: [0, 1200] };
-      default: 
-        return { color: '#FF416C', colorEnd: '#FF4B2B', id: 'temp', label: 'Nhiệt độ', unit: '°C', yDomain: [0, 100] };
-    }
-  };
-  const config = getChartConfig();
 
   return (
     <div className="page-layout">
       <Sidebar />
       <div className="page-content">
 
-        {/* Cards Grid */}
         <div className="cards-grid">
-          <div 
-            className={`sensor-card card-temp ${selectedSensor === 'temperature' ? 'active' : ''}`}
-            onClick={() => setSelectedSensor('temperature')}
-          >
+          <div className="sensor-card card-temp">
             <div className="card-bg-decoration"></div>
             <div className="icon-box">
               <Thermometer size={28} color="#fff" />
@@ -159,13 +141,21 @@ export default function Dashboard() {
               <div className="value-box">
                 {currentValues.temp} <span className="unit">°C</span>
               </div>
+
+              <div className="progress-container">
+                <div 
+                  className="progress-bar" 
+                  style={{ 
+                    width: `${Math.min((currentValues.temp / 50) * 100, 100)}%`, 
+                    backgroundColor: currentValues.temp > 35 ? '#ff0000' : '#ff9b9b'
+                  }}
+                ></div>
+              </div>
+
             </div>
           </div>
 
-          <div 
-            className={`sensor-card card-hum ${selectedSensor === 'humidity' ? 'active' : ''}`}
-            onClick={() => setSelectedSensor('humidity')}
-          >
+          <div className="sensor-card card-hum">
             <div className="card-bg-decoration"></div>
             <div className="icon-box">
               <Droplets size={28} color="#fff" />
@@ -175,13 +165,21 @@ export default function Dashboard() {
               <div className="value-box">
                 {currentValues.hum} <span className="unit">%</span>
               </div>
+
+              <div className="progress-container">
+                <div 
+                  className="progress-bar" 
+                  style={{ 
+                    width: `${Math.min((currentValues.hum / 100) * 100, 100)}%`, 
+                    backgroundColor: currentValues.hum > 70 ? '#4656ff' : '#91deff'
+                  }}
+                ></div>
+              </div>
+
             </div>
           </div>
 
-          <div 
-            className={`sensor-card card-light ${selectedSensor === 'light' ? 'active' : ''}`}
-            onClick={() => setSelectedSensor('light')}
-          >
+          <div className="sensor-card card-light">
             <div className="card-bg-decoration"></div>
             <div className="icon-box">
               <Sun size={28} color="#fff" />
@@ -191,49 +189,63 @@ export default function Dashboard() {
               <div className="value-box">
                 {currentValues.light} <span className="unit">Lux</span>
               </div>
+
+              <div className="progress-container">
+                <div 
+                  className="progress-bar" 
+                  style={{ 
+                    width: `${Math.min((currentValues.light / 4095) * 100, 100)}%`,
+                    backgroundColor: currentValues.light > 3500 ? '#ddff00' : '#ecf384'
+                  }}
+                ></div>
+              </div>
+
             </div>
           </div>
         </div>
 
-        {/* Main Section */}
         <div className="main-section">
           
-          {/* Chart */}
           <div className="chart-container">
             <div className="chart-header-row">
-              <h3 className="section-title">Biểu đồ {config.label}</h3>
-              
+              <h3 className="section-title">Biểu đồ</h3>
             </div>
             <div className="chart-body">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data} margin={{ top: 10, right: 25, left: -20, bottom: 0 }}>
+                <AreaChart data={data} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={config.color} stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor={config.colorEnd} stopOpacity={0}/>
+                    <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+                      {/* <stop offset="5%" stopColor="#FF416C" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#FF416C" stopOpacity={0}/> */}
+                    </linearGradient>
+                    <linearGradient id="colorHum" x1="0" y1="0" x2="0" y2="1">
+                      {/* <stop offset="5%" stopColor="#00c6ff" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#00c6ff" stopOpacity={0}/> */}
+                    </linearGradient>
+                    <linearGradient id="colorLight" x1="0" y1="0" x2="0" y2="1">
+                      {/* <stop offset="5%" stopColor="#F7971E" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#F7971E" stopOpacity={0}/> */}
                     </linearGradient>
                   </defs>
+                  
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
                   <XAxis dataKey="time" tick={{fontSize: 12, fill: '#888'}} axisLine={false} tickLine={false} interval={4} />
-                  <YAxis domain={config.yDomain} tick={{fontSize: 12, fill: '#888'}} axisLine={false} tickLine={false} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey={config.id} 
-                    stroke={config.color} 
-                    strokeWidth={4} 
-                    fillOpacity={1} 
-                    fill="url(#chartGradient)" 
-                    isAnimationActive={false}
-                  />
+                  
+                  <YAxis yAxisId="left" orientation="left" domain={[0, 100]} tick={{fontSize: 12, fill: '#888'}} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="right" orientation="right" tick={{fontSize: 12, fill: '#888'}} axisLine={false} tickLine={false} />
+                  
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }} />
+                  <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '13px', fontWeight: 600 }}/>
+
+                  <Area yAxisId="left" type="monotone" dataKey="temp" name="Nhiệt độ (°C)" stroke="#FF416C" strokeWidth={3} fillOpacity={1} fill="url(#colorTemp)" isAnimationActive={false} />
+                  <Area yAxisId="left" type="monotone" dataKey="hum" name="Độ ẩm (%)" stroke="#00c6ff" strokeWidth={3} fillOpacity={1} fill="url(#colorHum)" isAnimationActive={false} />
+                  <Area yAxisId="right" type="monotone" dataKey="light" name="Ánh sáng (Lux)" stroke="#F7971E" strokeWidth={3} fillOpacity={1} fill="url(#colorLight)" isAnimationActive={false} />
+                  
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Controls */}
           <div className="controls-container">
             <h3 className="section-title">Điều khiển</h3>
             

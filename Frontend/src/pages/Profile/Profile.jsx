@@ -14,14 +14,12 @@ export default function Profile() {
       <div className="profile-main">
         <div className="profile-grid">
           
-          {/* --- CỘT TRÁI: IDENTITY CARD --- */}
           <div className="card-box identity-card">
-            {/* Banner trang trí */}
             <div className="card-banner"></div>
             
             <div className="avatar-container">
               <img 
-                src="..\public\avt.png"
+                src="/avt.png"
                 alt="User Avatar" 
                 className="avatar-img" 
               />
@@ -67,10 +65,8 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* --- CỘT PHẢI: CHI TIẾT --- */}
           <div className="right-column">
             
-            {/* Section 1: Giới thiệu */}
             <div className="card-box">
               <h3 className="section-title">Giới thiệu</h3>
               <p className="bio-text">
@@ -80,7 +76,6 @@ export default function Profile() {
               </p>
             </div>
 
-            {/* Section 2: Kỹ năng & Công nghệ (MỚI) */}
             <div className="card-box">
               <h3 className="section-title">Kỹ năng & Công nghệ</h3>
               <div className="skills-container">
@@ -94,7 +89,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Section 3: Tài liệu & Liên kết */}
             <div className="card-box">
               <h3 className="section-title">Tài liệu & Báo cáo</h3>
               <div className="doc-grid">
@@ -130,8 +124,8 @@ export default function Profile() {
                 </a>
 
                 <a href="#" className="doc-card" /*target='_blank'*/>
-                  <div className="doc-icon-box bg-light-orange"> {/* Đổi màu sang cam cho giống Postman */}
-                    <Send size={20} /> {/* Sử dụng icon Send làm đại diện cho Postman */}
+                  <div className="doc-icon-box bg-light-orange">
+                    <Send size={20} /> 
                   </div>
                   <div className="doc-info">
                     <span className="doc-name">API Docs</span>
@@ -142,7 +136,7 @@ export default function Profile() {
               </div>
             </div>
 
-          </div> {/* End Right Column */}
+          </div> 
 
         </div>
       </div>

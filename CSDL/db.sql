@@ -45,6 +45,18 @@ SELECT * FROM devices;
 SELECT * FROM data_sensors;
 SELECT * FROM action_history;
 
--- xóa dữ liệu 
 TRUNCATE TABLE data_sensors;
 TRUNCATE TABLE action_history;
+
+
+
+
+
+
+
+select
+	date(ds.time) as ngay, count(ds.id) as tong
+from data_sensors ds
+where ds.idss = 1 and value > 25 and MONTH(ds.time) = MONTH (curdate())
+group by date(ds.time)
+order by tong desc

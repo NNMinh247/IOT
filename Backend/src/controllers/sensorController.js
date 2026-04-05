@@ -39,13 +39,13 @@ const getSensorData = async (req, res) => {
     try {
         const {
             page = 1, limit = 10,
-            dateDD, dateMM, dateYYYY,
-            timeHH, timeMM, timeSS,
-            name, value,
+            searchText = '', filterBy = 'all',
             sortKey = 'time', sortDir = 'desc'
         } = req.query;
 
-        const filters = { dateDD, dateMM, dateYYYY, timeHH, timeMM, timeSS, name, value };
+        const selectedFilters = filterBy.split(','); 
+        const filters = { searchText, selectedFilters };
+        
         const sort = { key: sortKey, direction: sortDir };
         const pagination = { page, limit };
 
@@ -64,10 +64,7 @@ const getSensorData = async (req, res) => {
         });
     } catch (error) {
         console.error('Lỗi tại getSensorData:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Lỗi server nội bộ' 
-        });
+        res.status(500).json({ success: false, message: 'Lỗi server nội bộ' });
     }
 };
 

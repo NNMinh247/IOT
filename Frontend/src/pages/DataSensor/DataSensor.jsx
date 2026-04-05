@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
-import { ArrowUpDown, ChevronDown } from 'lucide-react'; 
+import { ArrowUpDown, ChevronDown, Search, Copy } from 'lucide-react'; 
+import useDebounce from '../../hooks/useDebounce';
 import './DataSensor.css';
 
 export default function DataSensor() {
@@ -9,48 +10,98 @@ export default function DataSensor() {
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [limitInput, setLimitInput] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearchTerm = useDebounce(searchInput, 500); 
+  
+  const [selectedFilters, setSelectedFilters] = useState(['temp', 'hum', 'light', 'value', 'time']);
 
   const [showFilter, setShowFilter] = useState(false);
+  const [showCriteria, setShowCriteria] = useState(false);
   const [showSort, setShowSort] = useState(false);
-
-  const [filters, setFilters] = useState({
-    dateDD: '', dateMM: '', dateYYYY: '',
-    timeHH: '', timeMM: '', timeSS: '',
-    name: '', value: ''
-  });
   const [sortConfig, setSortConfig] = useState({ key: 'time', direction: 'desc' });
 
   const filterRef = useRef(null);
+  const criteriaRef = useRef(null);
   const sortRef = useRef(null);
 
-  const handleLimitChange = (e) => {
-    setLimitInput(e.target.value); // Chỉ cập nhật số đang gõ trên màn hình, CHƯA gọi API
+  const sensorOptions = [
+    { id: 'temp', label: 'Nhiệt độ' },
+    { id: 'hum', label: 'Độ ẩm' },
+    { id: 'light', label: 'Ánh sáng' }
+  ];
+
+  const criteriaOptions = [
+    { id: 'value', label: 'Giá trị' },
+    { id: 'time', label: 'Thời gian' }
+  ];
+
+  const isAllSensors = ['temp', 'hum', 'light'].every(s => selectedFilters.includes(s));
+
+  const handleFilterToggle = (val) => {
+    let newFilters = [...selectedFilters];
+
+    if (['value', 'time'].includes(val)) {
+      if (newFilters.includes(val)) {
+        const criteriaCount = newFilters.filter(item => ['value', 'time'].includes(item)).length;
+        if (criteriaCount > 1) {
+          newFilters = newFilters.filter(item => item !== val);
+        } else {
+          alert("Vui lòng để lại ít nhất 1 tiêu chí tìm kiếm!");
+        }
+      } else {
+        newFilters.push(val);
+      }
+    } else if (val === 'all_sensors') {
+      if (isAllSensors) {
+        newFilters = newFilters.filter(item => !['temp', 'hum', 'light'].includes(item));
+      } else {
+        ['temp', 'hum', 'light'].forEach(s => {
+          if (!newFilters.includes(s)) newFilters.push(s);
+        });
+      }
+    } else {
+      if (newFilters.includes(val)) {
+        newFilters = newFilters.filter(item => item !== val);
+      } else {
+        newFilters.push(val);
+      }
+    }
+    
+    setSelectedFilters(newFilters);
+    setCurrentPage(1);
+  };
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
   };
 
   const applyLimit = () => {
     const num = parseInt(limitInput);
     if (!isNaN(num) && num > 0 && num <= 1000) {
-      setItemsPerPage(num); // Chốt số lượng thật
-      setCurrentPage(1);    // Quay về trang 1
+      setItemsPerPage(num); setCurrentPage(1);    
     } else {
-      setLimitInput(itemsPerPage); // Nếu người dùng xóa trắng hoặc nhập chữ, tự reset về số cũ
+      setLimitInput(itemsPerPage); 
     }
   };
 
+  const handleLimitChange = (e) => setLimitInput(e.target.value);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm]);
+
   const fetchData = useCallback(async () => {
     try {
-      const activeFilters = {};
-      Object.entries(filters).forEach(([key, val]) => {
-        if (val.trim() !== '') activeFilters[key] = val.trim();
-      });
-
       const queryParams = new URLSearchParams({
         page: currentPage,
         limit: itemsPerPage || 10,
         sortKey: sortConfig.key,
         sortDir: sortConfig.direction,
-        ...activeFilters
-      })
+        searchText: debouncedSearchTerm,
+        filterBy: selectedFilters.join(',')
+      });
 
       const response = await fetch(`http://localhost:5000/api/sensors/data?${queryParams.toString()}`);
       const result = await response.json();
@@ -63,41 +114,34 @@ export default function DataSensor() {
             id: item.id,
             name: item.name,
             value: item.value,
-            date: `${pad(d.getDate())} / ${pad(d.getMonth() + 1)} / ${d.getFullYear()}`,
+            date: `${d.getFullYear()} / ${pad(d.getMonth() + 1)} / ${pad(d.getDate())}`,
             time: `${pad(d.getHours())} : ${pad(d.getMinutes())} : ${pad(d.getSeconds())}`
           };
         });
         setData(formattedData);
         setTotalPages(result.pagination.totalPages);
+        setTotalItems(result.pagination.totalItems || result.pagination.total || 0);
+      } else {
+        setData([]); 
+        setTotalPages(1);
+        setTotalItems(0);
       }
-
     } catch (error) {
       console.error("Lỗi khi fetch dữ liệu cảm biến:", error);
     }
-  }, [currentPage, sortConfig.key, sortConfig.direction, filters, itemsPerPage]);
+  }, [currentPage, sortConfig, itemsPerPage, debouncedSearchTerm, selectedFilters]);
 
-  useEffect(() => {
-    fetchData();
-  }, [currentPage, sortConfig.key, sortConfig.direction, itemsPerPage]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (filterRef.current && !filterRef.current.contains(event.target)) setShowFilter(false);
+      if (criteriaRef.current && !criteriaRef.current.contains(event.target)) setShowCriteria(false);
       if (sortRef.current && !sortRef.current.contains(event.target)) setShowSort(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleSearch = () => {
-    if (currentPage === 1) {
-      fetchData();
-    }
-    else {
-      setCurrentPage(1);
-    }
-    setShowFilter(false);
-  };
 
   const getSortLabel = () => {
     const labels = { id: 'ID', time: 'Thời gian', name: 'Tên', value: 'Giá trị' };
@@ -108,13 +152,11 @@ export default function DataSensor() {
     const buttons = [];
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) buttons.push(i);
-    }
-    else {
+    } else {
       if (currentPage <= 4) buttons.push(1, 2, 3, 4, 5, '...', totalPages);
       else if (currentPage >= totalPages - 3) buttons.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
       else buttons.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
     }
-
     return buttons;
   };
 
@@ -123,55 +165,54 @@ export default function DataSensor() {
       <Sidebar />
       <div className="datasensor-main">
         <div className="datasensor-card">
+          
           <div className="filter-bar">
             
-            {/* DROPDOWN LỌC */}
-            <div className="dropdown-container" ref={filterRef}>
-              <button className={`pill-btn-dropdown ${showFilter ? 'active' : ''}`} onClick={() => setShowFilter(!showFilter)}>
-                Lọc <ChevronDown size={16} />
+            <div className="search-container">
+              <input type="text" className="search-input" placeholder="Tìm kiếm ..." 
+                value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
+              <Search size={18} className="search-icon" />
+            </div>
+
+            <div className="dropdown-container" ref={criteriaRef}>
+              <button className={`pill-btn-dropdown wide ${showCriteria ? 'active' : ''}`} onClick={() => setShowCriteria(!showCriteria)}>
+                Tiêu chí<ChevronDown size={16} />
               </button>
-              {/* Thay thế phần Dropdown Menu Lọc trong file DataSensor.jsx */}
-              {showFilter && (
+              {showCriteria && (
                 <div className="dropdown-menu filter-menu">
-                  
-                  {/* Hàng Ngày */}
-                  <div className="filter-row">
-                    <span className="row-label">Ngày</span>
-                    <div className="input-group-wrapper">
-                      <input type="text" maxLength="2" placeholder="Ngày" value={filters.dateDD} onChange={(e) => setFilters({...filters, dateDD: e.target.value})} />
-                      <span className="sep">/</span>
-                      <input type="text" maxLength="2" placeholder="Tháng" value={filters.dateMM} onChange={(e) => setFilters({...filters, dateMM: e.target.value})} />
-                      <span className="sep">/</span>
-                      <input type="text" maxLength="4" placeholder="Năm" className="year-input" value={filters.dateYYYY} onChange={(e) => setFilters({...filters, dateYYYY: e.target.value})} />
-                    </div>
-                  </div>
-
-                  {/* Hàng Giờ */}
-                  <div className="filter-row">
-                    <span className="row-label">Giờ</span>
-                    <div className="input-group-wrapper">
-                      <input type="text" maxLength="2" placeholder="Giờ" value={filters.timeHH} onChange={(e) => setFilters({...filters, timeHH: e.target.value})} />
-                      <span className="sep">:</span>
-                      <input type="text" maxLength="2" placeholder="Phút" value={filters.timeMM} onChange={(e) => setFilters({...filters, timeMM: e.target.value})} />
-                      <span className="sep">:</span>
-                      <input type="text" maxLength="2" placeholder="Giây" value={filters.timeSS} onChange={(e) => setFilters({...filters, timeSS: e.target.value})} />
-                    </div>
-                  </div>
-
-                  <div className="filter-row">
-                    <span className="row-label">Tên</span>
-                    <input className="modern-single-input" type="text" placeholder="Tên cảm biến..." value={filters.name} onChange={(e) => setFilters({...filters, name: e.target.value})} />
-                  </div>
-
-                  <div className="filter-row">
-                    <span className="row-label">Giá trị</span>
-                    <input className="modern-single-input" type="text" placeholder="Nhập giá trị..." value={filters.value} onChange={(e) => setFilters({...filters, value: e.target.value})} />
-                  </div>
+                   {criteriaOptions.map(opt => (
+                      <div key={opt.id} className={`filter-checkbox-item ${selectedFilters.includes(opt.id) ? 'selected' : ''}`}
+                        onClick={() => handleFilterToggle(opt.id)}>
+                        <div className="custom-checkbox"></div>
+                        <span>{opt.label}</span>
+                      </div>
+                   ))}
                 </div>
               )}
             </div>
 
-            {/* DROPDOWN SẮP XẾP */}
+            <div className="dropdown-container" ref={filterRef}>
+              <button className={`pill-btn-dropdown wide ${showFilter ? 'active' : ''}`} onClick={() => setShowFilter(!showFilter)}>
+                Tất cả cảm biến <ChevronDown size={16} />
+              </button>
+              {showFilter && (
+                <div className="dropdown-menu filter-menu">
+                   <div className={`filter-checkbox-item ${isAllSensors ? 'selected' : ''}`} onClick={() => handleFilterToggle('all_sensors')}>
+                     <div className="custom-checkbox"></div>
+                     <span style={{fontWeight: 800, color: 'var(--primary-blue)'}}>Tất cả</span>
+                   </div>
+                   <div className="filter-section-divider"></div>
+                   {sensorOptions.map(opt => (
+                      <div key={opt.id} className={`filter-checkbox-item ${selectedFilters.includes(opt.id) ? 'selected' : ''}`}
+                        onClick={() => handleFilterToggle(opt.id)}>
+                        <div className="custom-checkbox"></div>
+                        <span>{opt.label}</span>
+                      </div>
+                   ))}
+                </div>
+              )}
+            </div>
+
             <div className="dropdown-container" ref={sortRef}>
               <button className={`pill-btn-dropdown wide ${showSort ? 'active' : ''}`} onClick={() => setShowSort(!showSort)}>
                 {getSortLabel()} <ChevronDown size={16} />
@@ -190,10 +231,8 @@ export default function DataSensor() {
               {sortConfig.direction === 'asc' ? 'Bé → Lớn' : 'Lớn → Bé'} <ArrowUpDown size={16} />
             </button>
 
-            <button className="pill-btn-search" onClick={handleSearch}>Tìm kiếm</button>
           </div>
 
-          {/* BẢNG DỮ LIỆU */}
           <div className="table-wrapper">
             <table className="sensor-table">
               <thead>
@@ -207,38 +246,37 @@ export default function DataSensor() {
               <tbody>
                 {data.length > 0 ? data.map(item => (
                   <tr key={item.id}>
-                    <td>{item.id}</td><td>{item.name}</td><td>{item.value}</td><td>{item.date} - {item.time}</td>
+                    <td>{item.id}</td>
+                    <td>{item.name}</td>
+                    <td>{item.value}</td>
+                    <td>
+                      <div className="time-cell">
+                        <span>{item.date} - {item.time}</span>
+                        <button
+                          className="copy-btn"
+                          onClick={() => handleCopy(`${item.date} - ${item.time}`)}
+                          title="Copy thời gian"
+                        >
+                          <Copy size={16} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 )) : <tr><td colSpan="4" className="no-data">Không tìm thấy dữ liệu</td></tr>}
               </tbody>
             </table>
           </div>
 
-          {/* PHÂN TRANG */}
           <div className="pagination-wrapper">
             <div className="limit-selector">
-              {/* Thay thẻ <span> thành thẻ <button> và gắn hàm onClick */}
               <button className="apply-limit-btn" onClick={applyLimit}>Hiển thị:</button>
-              
-              <input 
-                type="number" 
-                min="1" 
-                max="1000"
-                value={limitInput} 
-                onChange={handleLimitChange}
-                /* Đã xóa onBlur và onKeyDown ở đây */
-                className="limit-input"
-              />
-
-              <span>dòng / trang</span>
+              <input type="number" min="1" max="1000" value={limitInput} onChange={handleLimitChange} className="limit-input" />
+              <span>dữ liệu trong tổng số {totalItems} bản ghi</span>
             </div>
-
             <div className="page-buttons">
               {renderPaginationButtons().map((btn, index) => (
                 <button key={index} className={`page-btn ${btn === currentPage ? 'active' : ''} ${btn === '...' ? 'dots' : ''}`}
-                  onClick={() => typeof btn === 'number' && setCurrentPage(btn)} disabled={btn === '...'}>
-                  {btn}
-                </button>
+                  onClick={() => typeof btn === 'number' && setCurrentPage(btn)} disabled={btn === '...'}> {btn} </button>
               ))}
             </div>
           </div>

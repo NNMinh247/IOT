@@ -4,13 +4,24 @@ const mqttClient = require('../services/mqttService');
 const getStatus = async (req, res) => {
     try {
         const rows = await deviceModel.getLatestDeviceStatus();
+        const pendingRows = await deviceModel.getPendingDevices();
+
         let status = { fan: false, pump: false, light: false };
+        let pending = { fan: false, pump: false, light: false };
+
         rows.forEach(r => {
             if (r.iddv == 1) status.fan = (r.action.toLowerCase().trim() === 'bật');
             if (r.iddv == 2) status.pump = (r.action.toLowerCase().trim() === 'bật');
             if (r.iddv == 3) status.light = (r.action.toLowerCase().trim() === 'bật');
         });
-        res.status(200).json({ success: true, data: status });
+
+        pendingRows.forEach(r => {
+            if (r.iddv == 1) pending.fan = true;
+            if (r.iddv == 2) pending.pump = true;
+            if (r.iddv == 3) pending.light = true;
+        });
+
+        res.status(200).json({ success: true, data: status, pending: pending });
     } catch (err) {
         res.status(500).json({ success: false });
     }

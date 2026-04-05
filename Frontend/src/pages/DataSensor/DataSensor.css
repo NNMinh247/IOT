@@ -36,44 +36,124 @@
 }
 
 /* THANH CÔNG CỤ */
+/* THANH CÔNG CỤ */
 .filter-bar {
   display: flex;
-  gap: 15px;
+  gap: 8px; /* Ép khoảng cách các nút thật sát nhau */
   margin-bottom: 20px;
-  justify-content: flex-end;
+  justify-content: flex-start;
   align-items: center;
+  flex-wrap: nowrap; /* Cấm xuống dòng */
 }
 
-.dropdown-container {
+.search-container {
   position: relative;
+  display: flex;
+  align-items: center;
+  width: 150px; /* Thu ngắn thanh tìm kiếm tối đa */
+  flex-shrink: 0;
 }
 
-.pill-btn-dropdown {
-  height: 42px;
-  width: 320px !important;
-  padding: 0 20px;
-  border-radius: 1px;
-  background-color: #f4f7fe;
+.search-input {
+  width: 100%;
+  height: 38px; /* Giảm chiều cao */
+  border-radius: 20px;
+  border: 1px solid #e0e5f2;
+  padding: 0 32px 0 12px; 
+  font-size: 13px; /* Cỡ chữ gọn hơn */
+  outline: none;
+  background: white;
   color: var(--text-dark);
-  font-weight: 600;
-  border: 1px solid transparent;
-  cursor: pointer;
-  display: flex; align-items: center; gap: 10px;
+  font-weight: 500;
   transition: 0.2s;
 }
 
-.pill-btn-dropdown.active { border-color: var(--primary-blue); background-color: white;}
-.pill-btn-dropdown.wide { min-width: 180px; justify-content: space-between;}
+.search-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.08);
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  color: var(--text-dark);
+  cursor: pointer;
+  width: 16px; /* Icon bé lại 1 xíu */
+}
+
+/* GỘP CHUNG TẤT CẢ DROPDOWN ĐỂ KHÔNG BỊ TRÀN */
+.dropdown-container {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pill-btn-dropdown, 
+.pill-btn-dropdown.wide {
+  height: 38px;
+  width: max-content !important; /* XÓA BỎ CHIỀU DÀI CỨNG: Ép nút ôm vừa khít chữ */
+  min-width: 0 !important;       /* Xóa bỏ min-width 220px cũ */
+  padding: 0 10px;               /* Giảm viền thừa */
+  border-radius: 10px;
+  background-color: #f4f7fe;
+  color: var(--text-dark);
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: flex; 
+  align-items: center; 
+  gap: 6px;
+  transition: 0.2s;
+  white-space: nowrap; /* Cấm chữ bị bẻ xuống dòng */
+}
+
+.pill-btn-dropdown.active { 
+  border-color: var(--primary-blue); 
+  background-color: white;
+}
+
+.pill-btn-search {
+  height: 38px; 
+  padding: 0 14px; 
+  border-radius: 10px;
+  background: linear-gradient(90deg, #4481eb 0%, #04befe 100%);
+  color: white; 
+  font-weight: 700; 
+  font-size: 13px;
+  border: none; 
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(68, 129, 235, 0.4);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.pill-btn-toggle-sort {
+  height: 38px; 
+  width: max-content; /* Xóa 130px cứng cũ */
+  padding: 0 10px; 
+  border-radius: 10px; 
+  background: white;
+  border: 1px solid #e0e5f2; 
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  gap: 6px;
+  font-weight: 600; 
+  font-size: 13px;
+  color: var(--text-dark);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
 .dropdown-menu {
   position: absolute;
-  top: 50px;
+  top: 45px; /* Kéo xích lại gần nút hơn */
   left: 0;
   background: white;
   border-radius: 15px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   z-index: 100;
-  min-width: 250px;
+  min-width: 220px; /* Thu gọn menu xổ xuống */
   padding: 10px;
   border: 1px solid #e0e5f2;
   animation: slideDown 0.2s ease-out;
@@ -85,156 +165,6 @@
 }
 
 .menu-header {
-  padding: 10px 15px;
-  font-weight: 700;
-  color: var(--primary-blue);
-  background: #f4f7fe;
-  border-radius: 10px;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.filter-item {
-  display: flex; align-items: center;
-  padding: 8px 10px; gap: 10px;
-}
-
-.filter-item span { font-size: 13px; font-weight: 600; color: var(--text-gray); width: 60px; }
-
-.filter-item input {
-  flex: 1; height: 34px; border-radius: 8px; border: 1px solid #e0e5f2;
-  padding: 0 10px; font-size: 13px; outline: none;
-}
-
-.sort-option {
-  padding: 12px 15px; font-size: 14px; font-weight: 600; color: var(--text-dark);
-  cursor: pointer; border-radius: 10px;
-}
-.sort-option:hover { background-color: #f4f7fe; color: var(--primary-blue); }
-
-.pill-btn-toggle-sort {
-  height: 42px; padding: 0 20px; border-radius: 12px; background: white;
-  border: 1px solid #e0e5f2; cursor: pointer; display: flex; align-items: center; gap: 8px;
-  font-weight: 600; color: var(--text-dark);
-}
-
-.pill-btn-search {
-  height: 42px; padding: 0 30px; border-radius: 12px;
-  background: linear-gradient(90deg, #4481eb 0%, #04befe 100%);
-  color: white; font-weight: 700; border: none; cursor: pointer;
-  box-shadow: 0 4px 10px rgba(68, 129, 235, 0.4);
-}
-
-.table-wrapper {
-  flex: 1; overflow-y: auto; border-radius: 12px; border: 1px solid #f0f0f0; margin-bottom: 15px;
-}
-
-.sensor-table { width: 100%; border-collapse: collapse; }
-.sensor-table thead th {
-  position: sticky; top: 0; background: #f9fafc; color: var(--text-gray);
-  padding: 16px; text-align: left; font-size: 13px; border-bottom: 1px solid #e2e8f0;
-}
-.sensor-table td { padding: 12px; font-size: 14px; color: var(--text-dark); font-weight: 600; }
-.sensor-table tr { border-bottom: 1px solid #f4f7fe; }
-
-/* PHÂN TRANG */
-.pagination-wrapper { 
-  display: flex; 
-  justify-content: space-between;
-  align-items: center; 
-  gap: 18px; 
-  padding-right: 60px;
-}
-.page-btn {
-  width: 36px; height: 36px; border-radius: 10px; border: none;
-  background: #f4f7fe; color: var(--text-gray); font-weight: 700; cursor: pointer;
-}
-.page-btn.active { background: var(--primary-blue); color: white; }
-.page-btn.dots { background: transparent; cursor: default; }
-
-.filter-menu {
-  min-width: 272px !important;
-  padding: 20px !important;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.filter-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-}
-
-.row-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-dark);
-  width: 60px;
-  flex-shrink: 0;
-}
-
-.input-group-wrapper {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  border: 1.5px solid #e0e5f2;
-  border-radius: 10px;
-  padding: 2px 10px;
-  transition: all 0.2s ease;
-}
-
-.input-group-wrapper:focus-within {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.08);
-}
-
-.input-group-wrapper input {
-  width: 100% !important;
-  border: none !important;
-  background: transparent !important;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-dark);
-  outline: none;
-  padding: 8px 0;
-}
-
-.input-group-wrapper input::placeholder {
-  color: #cbd5e0;
-  font-size: 11px;
-  font-weight: 400;
-}
-
-.input-group-wrapper .sep {
-  color: #a3aed0;
-  font-weight: 800;
-  margin: 0 2px;
-  user-select: none;
-}
-
-.modern-single-input {
-  flex: 1;
-  height: 40px;
-  border-radius: 10px;
-  border: 1.5px solid #e0e5f2;
-  padding: 0 15px;
-  font-size: 13px;
-  font-weight: 500;
-  outline: none;
-  background: white;
-  box-sizing: border-box;
-}
-
-.modern-single-input:focus {
-  border-color: var(--primary-blue);
-  box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.08);
-}
-
-.menu-header {
   background: #f4f7fe;
   color: var(--primary-blue);
   padding: 10px 15px;
@@ -242,6 +172,91 @@
   font-weight: 800;
   font-size: 14px;
   margin-bottom: 5px;
+}
+
+.sort-option {
+  padding: 10px 12px; 
+  font-size: 13px; 
+  font-weight: 600; 
+  color: var(--text-dark);
+  cursor: pointer; 
+  border-radius: 8px;
+}
+
+.sort-option:hover { 
+  background-color: #f4f7fe; 
+  color: var(--primary-blue); 
+}
+
+/* --- BẢNG DỮ LIỆU --- */
+.table-wrapper {
+  flex: 1; 
+  overflow-y: auto; 
+  border-radius: 12px; 
+  border: 1px solid #f0f0f0; 
+  margin-bottom: 15px;
+}
+
+.sensor-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+}
+
+.sensor-table thead th {
+  position: sticky; 
+  top: 0; 
+  background: #f9fafc; 
+  color: var(--text-gray);
+  padding: 16px; 
+  text-align: left; 
+  font-size: 13px; 
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sensor-table td { 
+  padding: 8px 12px 9px 12px; 
+  font-size: 14px; 
+  color: var(--text-dark); 
+  font-weight: 600; 
+}
+
+.sensor-table tr { 
+  border-bottom: 1px solid #f4f7fe; 
+}
+
+/* --- PHÂN TRANG --- */
+.pagination-wrapper { 
+  display: flex; 
+  justify-content: space-between;
+  align-items: center; 
+  gap: 18px; 
+  padding-right: 60px;
+}
+
+.page-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.page-btn {
+  width: 36px; 
+  height: 36px; 
+  border-radius: 10px; 
+  border: none;
+  background: #f4f7fe; 
+  color: var(--text-gray); 
+  font-weight: 700; 
+  cursor: pointer;
+}
+
+.page-btn.active { 
+  background: var(--primary-blue); 
+  color: white; 
+}
+
+.page-btn.dots { 
+  background: transparent; 
+  cursor: default; 
 }
 
 .limit-selector {
@@ -272,12 +287,6 @@
   box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.08);
 }
 
-/* Khu vực bọc các nút phân trang */
-.page-buttons {
-  display: flex;
-  gap: 8px;
-}
-
 .apply-limit-btn {
   background: var(--primary-blue);
   color: white;
@@ -300,4 +309,100 @@
 
 .apply-limit-btn:active {
   transform: translateY(0);
+}
+
+/* --- UI MENU LỌC CHECKBOX (ĐÃ GOM LẠI CSS ĐÈ NHAU) --- */
+.dropdown-menu.filter-menu {
+  min-width: 200px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-section-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-gray);
+  margin: 8px 0 4px 5px;
+  letter-spacing: 1px;
+}
+
+.filter-section-divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 8px 5px;
+}
+
+.filter-checkbox-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  cursor: pointer;
+  border-radius: 10px;
+  transition: 0.2s;
+  gap: 12px;
+}
+
+.filter-checkbox-item:hover {
+  background-color: #f4f7fe;
+  color: var(--primary-blue);
+}
+
+/* Vẽ ô vuông Checkbox */
+.custom-checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 2px solid #a3aed0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+
+/* Khi được tích chọn -> Đổi màu xanh và hiện dấu tick */
+.filter-checkbox-item.selected .custom-checkbox {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+}
+
+.filter-checkbox-item.selected .custom-checkbox::after {
+  content: '✓';
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.time-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.copy-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-gray); /* Cùng màu xám nhạt với text phụ */
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+  color: var(--primary-blue); /* Khi di chuột vào sẽ chuyển màu xanh primary */
+  background-color: rgba(67, 24, 255, 0.08); /* Nền xanh nhạt */
+  transform: scale(1.1);
+}
+
+.copy-btn:active {
+  transform: scale(0.95);
 }

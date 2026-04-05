@@ -156,10 +156,10 @@
 @keyframes pulse-light { 0% {opacity: 1;} 50% {opacity: 0.7;} 100% {opacity: 1;} }
 
 .control-btn.is-waiting {
-  background: #e9ecef !important; /* Màu xám nhạt */
+  background: #e9ecef !important;
   box-shadow: none;
   cursor: not-allowed;
-  pointer-events: none; /* Khóa hoàn toàn không cho click đúp */
+  pointer-events: none;
   border: 1px dashed #ced4da;
 }
 
@@ -192,4 +192,27 @@
   0% { transform: scale(1); opacity: 0.5; }
   50% { transform: scale(0.85); opacity: 1; }
   100% { transform: scale(1); opacity: 0.5; }
+}
+
+.progress-container {
+  width: 120px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease-in-out, background-color 0.3s ease;
+}
+
+.sensor-card:not(.active) .progress-container {
+  background: #e0e5f2;
+}
+
+.sensor-card:not(.active) .progress-bar {
+  background: var(--primary-blue);
 }

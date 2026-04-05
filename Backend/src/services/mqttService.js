@@ -50,10 +50,26 @@ client.on('message', async (topic, message) => {
 
         if (topic === 'devices/status') {
             const data = JSON.parse(payloadStr);
-            
-            const finalStatus = data.result === 'success' ? 'Thành công' : 'Thất bại';
-            
-            await db.execute(`UPDATE action_history SET status = ? WHERE status = 'Chờ'`, [finalStatus]);
+
+            const [pendingRows] = await db.execute(`SELECT id, iddv, action FROM action_history WHERE status = 'Chờ'`);
+
+            if (data.result === 'success') {
+                for (let r of pendingRows) {
+                    let isMatched = false;
+                    
+                    if (r.iddv == 1 && data.led1 === (r.action === 'Bật' ? 'ON' : 'OFF')) isMatched = true;
+                    if (r.iddv == 2 && data.led2 === (r.action === 'Bật' ? 'ON' : 'OFF')) isMatched = true;
+                    if (r.iddv == 3 && data.led3 === (r.action === 'Bật' ? 'ON' : 'OFF')) isMatched = true;
+
+                    if (isMatched) {
+                        await db.execute(`UPDATE action_history SET status = 'Thành công' WHERE id = ?`, [r.id]);
+                    }
+                }
+            } else {
+                for (let r of pendingRows) {
+                    await db.execute(`UPDATE action_history SET status = 'Thất bại' WHERE id = ?`, [r.id]);
+                }
+            }
 
             if (socketIo) {
                 socketIo.emit('device_status_update', data);
@@ -64,17 +80,17 @@ client.on('message', async (topic, message) => {
             const rows = await deviceModel.getLatestDeviceStatus();
             let s1 = 'OFF', s2 = 'OFF', s3 = 'OFF';
             rows.forEach(r => {
-                if (r.iddv === 1) s1 = r.action === 'Bật' ? 'ON' : 'OFF';
-                if (r.iddv === 2) s2 = r.action === 'Bật' ? 'ON' : 'OFF';
-                if (r.iddv === 3) s3 = r.action === 'Bật' ? 'ON' : 'OFF';
+                if (r.iddv == 1) s1 = r.action.toLowerCase().trim() === 'bật' ? 'ON' : 'OFF';
+                if (r.iddv == 2) s2 = r.action.toLowerCase().trim() === 'bật' ? 'ON' : 'OFF';
+                if (r.iddv == 3) s3 = r.action.toLowerCase().trim() === 'bật' ? 'ON' : 'OFF';
             });
             
-            client.publish('devices/control', `LED1_${s1}`);
-            client.publish('devices/control', `LED2_${s2}`);
-            client.publish('devices/control', `LED3_${s3}`);
-            // setTimeout(() => client.publish('devices/control', `LED1_${s1}`), 100);
-            // setTimeout(() => client.publish('devices/control', `LED2_${s2}`), 300);
-            // setTimeout(() => client.publish('devices/control', `LED3_${s3}`), 500);
+            // client.publish('devices/control', `LED1_${s1}`);
+            // client.publish('devices/control', `LED2_${s2}`);
+            // client.publish('devices/control', `LED3_${s3}`);
+            setTimeout(() => client.publish('devices/control', `LED1_${s1}`), 100);
+            setTimeout(() => client.publish('devices/control', `LED2_${s2}`), 200);
+            setTimeout(() => client.publish('devices/control', `LED3_${s3}`), 300);
         }
     }
     catch (error) {

@@ -55,7 +55,8 @@ export default function DataSensor() {
   const applyLimit = () => {
     const num = parseInt(limitInput);
     if (!isNaN(num) && num > 0 && num <= 1000) {
-      setItemsPerPage(num); setCurrentPage(1);    
+      setItemsPerPage(num); 
+      setCurrentPage(1);    
     } else {
       setLimitInput(itemsPerPage); 
     }
@@ -123,12 +124,12 @@ export default function DataSensor() {
   }, []);
 
   const handleSort = (key) => {
-    let direction = 'desc'; // Mặc định click lần đầu là giảm dần
+    let direction = 'desc';
     if (sortConfig.key === key && sortConfig.direction === 'desc') {
-      direction = 'asc'; // Nếu đang giảm dần thì đổi thành tăng dần
+      direction = 'asc';
     }
     setSortConfig({ key, direction });
-    setCurrentPage(1); // Đổi sắp xếp thì quay về trang 1
+    setCurrentPage(1);
   };
 
   const renderPaginationButtons = () => {

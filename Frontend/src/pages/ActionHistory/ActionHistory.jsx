@@ -63,7 +63,10 @@ export default function ActionHistory() {
   const handleLimitChange = (e) => setLimitInput(e.target.value);
   const applyLimit = () => {
     const num = parseInt(limitInput);
-    if (!isNaN(num) && num > 0 && num <= 1000) { setItemsPerPage(num); setCurrentPage(1); } 
+    if (!isNaN(num) && num > 0 && num <= 1000) { 
+      setItemsPerPage(num); 
+      setCurrentPage(1); 
+    } 
     else setLimitInput(itemsPerPage); 
   };
 

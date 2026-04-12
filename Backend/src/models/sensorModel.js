@@ -43,22 +43,19 @@ const getSensorDataAdvance = async (filters, sort, pagination) => {
         
         let timeParams = [textParam, textParam, textCleanParam, textParam];
 
-        if (selectedFilters.includes('all') || 
-           (!selectedFilters.includes('value') && !selectedFilters.includes('time'))) {
+        if (selectedFilters.includes('value')) {
+            searchConditions.push(`CAST(ds.value AS CHAR) LIKE ?`);
+            queryParams.push(textParam);
+        } 
+        else if (selectedFilters.includes('time')) {
+            searchConditions.push(timeCondition);
+            queryParams.push(...timeParams);
+        } 
+        else {
             searchConditions.push(`CAST(ds.value AS CHAR) LIKE ?`);
             searchConditions.push(`s.name LIKE ?`);
             searchConditions.push(timeCondition);
-            
             queryParams.push(textParam, textParam, ...timeParams);
-        } else {
-            if (selectedFilters.includes('value')) {
-                searchConditions.push(`CAST(ds.value AS CHAR) LIKE ?`);
-                queryParams.push(textParam);
-            }
-            if (selectedFilters.includes('time')) {
-                searchConditions.push(timeCondition);
-                queryParams.push(...timeParams);
-            }
         }
 
         if (searchConditions.length > 0) {
@@ -79,7 +76,14 @@ const getSensorDataAdvance = async (filters, sort, pagination) => {
     const page = Number(pagination.page) || 1;
     const offset = (page - 1) * limit;
 
-    let dataSql = `SELECT ds.id, s.name, ds.value, ds.time ${baseQuery} ${whereString} ORDER BY ${sortCol} ${sortDir}, ds.id ${sortDir} LIMIT ? OFFSET ?`;
+    let orderSql = '';
+    if (sort.key === 'name' || sort.key === 'value') {
+        orderSql = `ORDER BY ${sortCol} ${sortDir}, ds.id DESC`;
+    } else {
+        orderSql = `ORDER BY ${sortCol} ${sortDir}, ds.id ${sortDir}`;
+    }
+
+    let dataSql = `SELECT ds.id, s.name, ds.value, ds.time ${baseQuery} ${whereString} ${orderSql} LIMIT ? OFFSET ?`;
 
     const dataParams = [...queryParams, limit, offset];
     const [rows] = await db.query(dataSql, dataParams);

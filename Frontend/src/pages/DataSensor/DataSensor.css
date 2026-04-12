@@ -40,7 +40,7 @@
 .filter-bar {
   display: flex;
   gap: 8px; /* Ép khoảng cách các nút thật sát nhau */
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   justify-content: flex-start;
   align-items: center;
   flex-wrap: nowrap; /* Cấm xuống dòng */
@@ -90,9 +90,8 @@
 .pill-btn-dropdown, 
 .pill-btn-dropdown.wide {
   height: 38px;
-  width: max-content !important; /* XÓA BỎ CHIỀU DÀI CỨNG: Ép nút ôm vừa khít chữ */
-  min-width: 0 !important;       /* Xóa bỏ min-width 220px cũ */
-  padding: 0 10px;               /* Giảm viền thừa */
+  width: 200px !important;
+  padding: 0 15px;
   border-radius: 10px;
   background-color: #f4f7fe;
   color: var(--text-dark);
@@ -102,47 +101,15 @@
   cursor: pointer;
   display: flex; 
   align-items: center; 
+  justify-content: space-between;
   gap: 6px;
   transition: 0.2s;
-  white-space: nowrap; /* Cấm chữ bị bẻ xuống dòng */
+  white-space: nowrap; 
 }
 
 .pill-btn-dropdown.active { 
   border-color: var(--primary-blue); 
   background-color: white;
-}
-
-.pill-btn-search {
-  height: 38px; 
-  padding: 0 14px; 
-  border-radius: 10px;
-  background: linear-gradient(90deg, #4481eb 0%, #04befe 100%);
-  color: white; 
-  font-weight: 700; 
-  font-size: 13px;
-  border: none; 
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(68, 129, 235, 0.4);
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.pill-btn-toggle-sort {
-  height: 38px; 
-  width: max-content; /* Xóa 130px cứng cũ */
-  padding: 0 10px; 
-  border-radius: 10px; 
-  background: white;
-  border: 1px solid #e0e5f2; 
-  cursor: pointer; 
-  display: flex; 
-  align-items: center; 
-  gap: 6px;
-  font-weight: 600; 
-  font-size: 13px;
-  color: var(--text-dark);
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .dropdown-menu {
@@ -207,7 +174,7 @@
   top: 0; 
   background: #f9fafc; 
   color: var(--text-gray);
-  padding: 16px; 
+  padding: 20px; 
   text-align: left; 
   font-size: 13px; 
   border-bottom: 1px solid #e2e8f0;
@@ -268,6 +235,11 @@
   color: var(--text-gray);
 }
 
+.limit-label {
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
 .limit-input {
   width: 50px;
   height: 36px;
@@ -287,29 +259,6 @@
   box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.08);
 }
 
-.apply-limit-btn {
-  background: var(--primary-blue);
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: 'DM Sans', sans-serif;
-  box-shadow: 0 4px 10px rgba(67, 24, 255, 0.2);
-}
-
-.apply-limit-btn:hover {
-  background: #3311cc;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(67, 24, 255, 0.3);
-}
-
-.apply-limit-btn:active {
-  transform: translateY(0);
-}
 
 /* --- UI MENU LỌC CHECKBOX (ĐÃ GOM LẠI CSS ĐÈ NHAU) --- */
 .dropdown-menu.filter-menu {
@@ -332,49 +281,6 @@
   height: 1px;
   background: #f0f0f0;
   margin: 8px 5px;
-}
-
-.filter-checkbox-item {
-  display: flex;
-  align-items: center;
-  padding: 6px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-dark);
-  cursor: pointer;
-  border-radius: 10px;
-  transition: 0.2s;
-  gap: 12px;
-}
-
-.filter-checkbox-item:hover {
-  background-color: #f4f7fe;
-  color: var(--primary-blue);
-}
-
-/* Vẽ ô vuông Checkbox */
-.custom-checkbox {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  border: 2px solid #a3aed0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.2s;
-}
-
-/* Khi được tích chọn -> Đổi màu xanh và hiện dấu tick */
-.filter-checkbox-item.selected .custom-checkbox {
-  background-color: var(--primary-blue);
-  border-color: var(--primary-blue);
-}
-
-.filter-checkbox-item.selected .custom-checkbox::after {
-  content: '✓';
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
 }
 
 .time-cell {
@@ -405,4 +311,56 @@
 
 .copy-btn:active {
   transform: scale(0.95);
+}
+
+/* --- UI CHO MENU SINGLE SELECT (CHỌN 1) --- */
+.single-select-item {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.single-select-item:hover {
+  background-color: #f4f7fe;
+  color: var(--primary-blue);
+}
+
+.single-select-item.selected {
+  background-color: rgba(67, 24, 255, 0.08); /* Nền xanh nhạt */
+  color: var(--primary-blue);
+  font-weight: 800;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none; /* Tránh bôi đen chữ khi click đúp */
+  transition: all 0.2s ease;
+}
+
+.sortable-header:hover {
+  color: var(--primary-blue); /* Đổi màu chữ khi di chuột vào */
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-icon {
+  color: var(--primary-blue); /* Mũi tên xanh đậm nếu đang được sắp xếp */
+  font-weight: bold;
+}
+
+.inactive-icon {
+  color: #cbd5e1; /* Mũi tên xám nhạt nếu cột đó chưa được chọn */
+  transition: color 0.2s;
+}
+
+.sortable-header:hover .inactive-icon {
+  color: #94a3b8; /* Mũi tên đậm lên một chút khi hover */
 }

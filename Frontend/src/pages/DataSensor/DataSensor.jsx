@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
-import { ArrowUpDown, ChevronDown, Search, Copy } from 'lucide-react'; 
+import { ChevronDown, Search, Copy, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import useDebounce from '../../hooks/useDebounce';
 import './DataSensor.css';
 
@@ -15,16 +15,27 @@ export default function DataSensor() {
   const [searchInput, setSearchInput] = useState('');
   const debouncedSearchTerm = useDebounce(searchInput, 500); 
   
-  const [selectedFilters, setSelectedFilters] = useState(['temp', 'hum', 'light', 'value', 'time']);
-
   const [showFilter, setShowFilter] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
-  const [showSort, setShowSort] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: 'time', direction: 'desc' });
 
   const filterRef = useRef(null);
   const criteriaRef = useRef(null);
-  const sortRef = useRef(null);
+
+  const [selectedSensor, setSelectedSensor] = useState('all'); 
+  const [selectedCriteria, setSelectedCriteria] = useState('time'); 
+
+  const getSensorLabel = () => {
+    if (selectedSensor === 'temp') return 'Nhiệt độ';
+    if (selectedSensor === 'hum') return 'Độ ẩm';
+    if (selectedSensor === 'light') return 'Ánh sáng';
+    return 'Tất cả cảm biến';
+  };
+
+  const getCriteriaLabel = () => {
+    if (selectedCriteria === 'value') return 'Giá trị';
+    return 'Thời gian';
+  };
 
   const sensorOptions = [
     { id: 'temp', label: 'Nhiệt độ' },
@@ -36,42 +47,6 @@ export default function DataSensor() {
     { id: 'value', label: 'Giá trị' },
     { id: 'time', label: 'Thời gian' }
   ];
-
-  const isAllSensors = ['temp', 'hum', 'light'].every(s => selectedFilters.includes(s));
-
-  const handleFilterToggle = (val) => {
-    let newFilters = [...selectedFilters];
-
-    if (['value', 'time'].includes(val)) {
-      if (newFilters.includes(val)) {
-        const criteriaCount = newFilters.filter(item => ['value', 'time'].includes(item)).length;
-        if (criteriaCount > 1) {
-          newFilters = newFilters.filter(item => item !== val);
-        } else {
-          alert("Vui lòng để lại ít nhất 1 tiêu chí tìm kiếm!");
-        }
-      } else {
-        newFilters.push(val);
-      }
-    } else if (val === 'all_sensors') {
-      if (isAllSensors) {
-        newFilters = newFilters.filter(item => !['temp', 'hum', 'light'].includes(item));
-      } else {
-        ['temp', 'hum', 'light'].forEach(s => {
-          if (!newFilters.includes(s)) newFilters.push(s);
-        });
-      }
-    } else {
-      if (newFilters.includes(val)) {
-        newFilters = newFilters.filter(item => item !== val);
-      } else {
-        newFilters.push(val);
-      }
-    }
-    
-    setSelectedFilters(newFilters);
-    setCurrentPage(1);
-  };
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
@@ -94,13 +69,18 @@ export default function DataSensor() {
 
   const fetchData = useCallback(async () => {
     try {
+      let filterByArray = [];
+      if (selectedSensor === 'all') filterByArray.push('temp', 'hum', 'light');
+      else filterByArray.push(selectedSensor);
+      filterByArray.push(selectedCriteria);
+
       const queryParams = new URLSearchParams({
         page: currentPage,
         limit: itemsPerPage || 10,
         sortKey: sortConfig.key,
         sortDir: sortConfig.direction,
-        searchText: debouncedSearchTerm,
-        filterBy: selectedFilters.join(',')
+        searchText: debouncedSearchTerm, 
+        filterBy: filterByArray.join(',') 
       });
 
       const response = await fetch(`http://localhost:5000/api/sensors/data?${queryParams.toString()}`);
@@ -129,7 +109,7 @@ export default function DataSensor() {
     } catch (error) {
       console.error("Lỗi khi fetch dữ liệu cảm biến:", error);
     }
-  }, [currentPage, sortConfig, itemsPerPage, debouncedSearchTerm, selectedFilters]);
+  }, [currentPage, sortConfig, itemsPerPage, debouncedSearchTerm, selectedSensor, selectedCriteria]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -137,15 +117,18 @@ export default function DataSensor() {
     const handleClickOutside = (event) => {
       if (filterRef.current && !filterRef.current.contains(event.target)) setShowFilter(false);
       if (criteriaRef.current && !criteriaRef.current.contains(event.target)) setShowCriteria(false);
-      if (sortRef.current && !sortRef.current.contains(event.target)) setShowSort(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getSortLabel = () => {
-    const labels = { id: 'ID', time: 'Thời gian', name: 'Tên', value: 'Giá trị' };
-    return `Sắp xếp theo ${labels[sortConfig.key]}`;
+  const handleSort = (key) => {
+    let direction = 'desc'; // Mặc định click lần đầu là giảm dần
+    if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = 'asc'; // Nếu đang giảm dần thì đổi thành tăng dần
+    }
+    setSortConfig({ key, direction });
+    setCurrentPage(1); // Đổi sắp xếp thì quay về trang 1
   };
 
   const renderPaginationButtons = () => {
@@ -174,16 +157,20 @@ export default function DataSensor() {
               <Search size={18} className="search-icon" />
             </div>
 
+            {/* 1. MENU TIÊU CHÍ */}
             <div className="dropdown-container" ref={criteriaRef}>
               <button className={`pill-btn-dropdown wide ${showCriteria ? 'active' : ''}`} onClick={() => setShowCriteria(!showCriteria)}>
-                Tiêu chí<ChevronDown size={16} />
+                {getCriteriaLabel()} <ChevronDown size={16} />
               </button>
               {showCriteria && (
                 <div className="dropdown-menu filter-menu">
                    {criteriaOptions.map(opt => (
-                      <div key={opt.id} className={`filter-checkbox-item ${selectedFilters.includes(opt.id) ? 'selected' : ''}`}
-                        onClick={() => handleFilterToggle(opt.id)}>
-                        <div className="custom-checkbox"></div>
+                      <div key={opt.id} className={`single-select-item ${selectedCriteria === opt.id ? 'selected' : ''}`}
+                        onClick={() => {
+                          setSelectedCriteria(opt.id);
+                          setCurrentPage(1);
+                          setShowCriteria(false); // Chọn xong tự đóng menu
+                        }}>
                         <span>{opt.label}</span>
                       </div>
                    ))}
@@ -191,56 +178,57 @@ export default function DataSensor() {
               )}
             </div>
 
+            {/* 2. MENU CẢM BIẾN */}
             <div className="dropdown-container" ref={filterRef}>
               <button className={`pill-btn-dropdown wide ${showFilter ? 'active' : ''}`} onClick={() => setShowFilter(!showFilter)}>
-                Tất cả cảm biến <ChevronDown size={16} />
+                {getSensorLabel()} <ChevronDown size={16} />
               </button>
               {showFilter && (
                 <div className="dropdown-menu filter-menu">
-                   <div className={`filter-checkbox-item ${isAllSensors ? 'selected' : ''}`} onClick={() => handleFilterToggle('all_sensors')}>
-                     <div className="custom-checkbox"></div>
-                     <span style={{fontWeight: 800, color: 'var(--primary-blue)'}}>Tất cả</span>
+                   <div className={`single-select-item ${selectedSensor === 'all' ? 'selected' : ''}`} 
+                        onClick={() => { setSelectedSensor('all'); setCurrentPage(1); setShowFilter(false); }}>
+                     <span>Tất cả cảm biến</span>
                    </div>
                    <div className="filter-section-divider"></div>
                    {sensorOptions.map(opt => (
-                      <div key={opt.id} className={`filter-checkbox-item ${selectedFilters.includes(opt.id) ? 'selected' : ''}`}
-                        onClick={() => handleFilterToggle(opt.id)}>
-                        <div className="custom-checkbox"></div>
+                      <div key={opt.id} className={`single-select-item ${selectedSensor === opt.id ? 'selected' : ''}`}
+                        onClick={() => { setSelectedSensor(opt.id); setCurrentPage(1); setShowFilter(false); }}>
                         <span>{opt.label}</span>
                       </div>
                    ))}
                 </div>
               )}
             </div>
-
-            <div className="dropdown-container" ref={sortRef}>
-              <button className={`pill-btn-dropdown wide ${showSort ? 'active' : ''}`} onClick={() => setShowSort(!showSort)}>
-                {getSortLabel()} <ChevronDown size={16} />
-              </button>
-              {showSort && (
-                <div className="dropdown-menu">
-                  <div className="sort-option" onClick={() => setSortConfig({...sortConfig, key: 'id'})}>Sắp xếp theo ID</div>
-                  <div className="sort-option" onClick={() => setSortConfig({...sortConfig, key: 'time'})}>Sắp xếp theo thời gian</div>
-                  <div className="sort-option" onClick={() => setSortConfig({...sortConfig, key: 'name'})}>Sắp xếp theo tên</div>
-                  <div className="sort-option" onClick={() => setSortConfig({...sortConfig, key: 'value'})}>Sắp xếp giá trị</div>
-                </div>
-              )}
-            </div>
-
-            <button className="pill-btn-toggle-sort" onClick={() => setSortConfig({...sortConfig, direction: sortConfig.direction === 'asc' ? 'desc' : 'asc'})}>
-              {sortConfig.direction === 'asc' ? 'Bé → Lớn' : 'Lớn → Bé'} <ArrowUpDown size={16} />
-            </button>
-
           </div>
 
           <div className="table-wrapper">
             <table className="sensor-table">
               <thead>
                 <tr>
-                  <th style={{width: '10%'}}>ID</th>
-                  <th style={{width: '35%'}}>TÊN CẢM BIẾN</th>
-                  <th style={{width: '25%'}}>GIÁ TRỊ</th>
-                  <th style={{width: '30%'}}>THỜI GIAN</th>
+                  <th style={{width: '10%'}} className="sortable-header" onClick={() => handleSort('id')}>
+                    <div className="header-content">
+                      ID 
+                      {sortConfig.key === 'id' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} className="active-icon"/> : <ArrowDown size={14} className="active-icon"/>) : <ArrowUpDown size={14} className="inactive-icon"/>}
+                    </div>
+                  </th>
+                  <th style={{width: '35%'}} className="sortable-header" onClick={() => handleSort('name')}>
+                    <div className="header-content">
+                      TÊN CẢM BIẾN 
+                      {sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} className="active-icon"/> : <ArrowDown size={14} className="active-icon"/>) : <ArrowUpDown size={14} className="inactive-icon"/>}
+                    </div>
+                  </th>
+                  <th style={{width: '25%'}} className="sortable-header" onClick={() => handleSort('value')}>
+                    <div className="header-content">
+                      GIÁ TRỊ 
+                      {sortConfig.key === 'value' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} className="active-icon"/> : <ArrowDown size={14} className="active-icon"/>) : <ArrowUpDown size={14} className="inactive-icon"/>}
+                    </div>
+                  </th>
+                  <th style={{width: '30%'}} className="sortable-header" onClick={() => handleSort('time')}>
+                    <div className="header-content">
+                      THỜI GIAN 
+                      {sortConfig.key === 'time' ? (sortConfig.direction === 'asc' ? <ArrowUp size={14} className="active-icon"/> : <ArrowDown size={14} className="active-icon"/>) : <ArrowUpDown size={14} className="inactive-icon"/>}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -269,8 +257,16 @@ export default function DataSensor() {
 
           <div className="pagination-wrapper">
             <div className="limit-selector">
-              <button className="apply-limit-btn" onClick={applyLimit}>Hiển thị:</button>
-              <input type="number" min="1" max="1000" value={limitInput} onChange={handleLimitChange} className="limit-input" />
+              <span className="limit-label">Hiển thị</span>
+              <input 
+                type="number" 
+                min="1" max="1000" 
+                value={limitInput} 
+                onChange={handleLimitChange} 
+                onKeyDown={(e) => { if (e.key === 'Enter') applyLimit(); }} 
+                onBlur={applyLimit} 
+                className="limit-input" 
+              />
               <span>dữ liệu trong tổng số {totalItems} bản ghi</span>
             </div>
             <div className="page-buttons">

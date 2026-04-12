@@ -44,13 +44,17 @@ const controlDevice = async (req, res) => {
         mqttClient.publish('devices/control', payload);
         
         setTimeout(async () => {
-            const isTimeout = await deviceModel.checkAndUpdateTimeout(historyId);
-            if (isTimeout) {
-                const io = req.app.get('io');
-                if (io) {
-                    const deviceName = device_id === 1 ? 'fan' : (device_id === 2 ? 'pump' : 'light');
-                    io.emit('device_timeout', { device: deviceName, message: 'Thiết bị mất kết nối, lệnh thất bại!' });
+            try {
+                const isTimeout = await deviceModel.checkAndUpdateTimeout(historyId);
+                if (isTimeout) {
+                    const io = req.app.get('io');
+                    if (io) {
+                        const deviceName = device_id === 1 ? 'fan' : (device_id === 2 ? 'pump' : 'light');
+                        io.emit('device_timeout', { device: deviceName, message: 'Thiết bị mất kết nối, lệnh thất bại!' });
+                    }
                 }
+            } catch (error) {
+                console.error('Lỗi khi kiểm tra timeout:', error);
             }
         }, 10000);
 

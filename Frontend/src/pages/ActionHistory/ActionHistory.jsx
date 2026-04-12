@@ -23,10 +23,6 @@ export default function ActionHistory() {
     { id: 'Chờ', label: 'Chờ' }
   ];
 
-  const [selectedDevices, setSelectedDevices] = useState([1, 2, 3]);
-  const [selectedActions, setSelectedActions] = useState(['Bật', 'Tắt']);
-  const [selectedStatuses, setSelectedStatuses] = useState(['Thành công', 'Thất bại', 'Chờ']);
-
   const [showDeviceMenu, setShowDeviceMenu] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
@@ -35,15 +31,23 @@ export default function ActionHistory() {
   const actionRef = useRef(null);
   const statusRef = useRef(null);
 
-  const toggleFilter = (val, list, setList, allValues) => {
-    if (val === 'all') {
-      if (list.length === allValues.length) setList([]);
-      else setList([...allValues]);
-    } else {
-      if (list.includes(val)) setList(list.filter(item => item !== val));
-      else setList([...list, val]);
-    }
-    setCurrentPage(1);
+  const [selectedDevices, setSelectedDevices] = useState('all');
+  const [selectedActions, setSelectedActions] = useState('all');
+  const [selectedStatuses, setSelectedStatuses] = useState('all');
+
+  const getDeviceLabel = () => {
+    if (selectedDevices === 'all') return 'Tất cả thiết bị';
+    return deviceOptions.find(opt => opt.id === selectedDevices)?.label || 'Tất cả thiết bị';
+  };
+
+  const getActionLabel = () => {
+    if (selectedActions === 'all') return 'Tất cả hành động';
+    return actionOptions.find(opt => opt.id === selectedActions)?.label || 'Tất cả hành động';
+  };
+
+  const getStatusLabel = () => {
+    if (selectedStatuses === 'all') return 'Tất cả trạng thái';
+    return statusOptions.find(opt => opt.id === selectedStatuses)?.label || 'Tất cả trạng thái';
   };
 
   useEffect(() => {
@@ -77,9 +81,9 @@ export default function ActionHistory() {
         page: currentPage,
         limit: itemsPerPage || 10,
         searchTime: debouncedSearchTerm, 
-        devices: selectedDevices.join(','),
-        actions: selectedActions.join(','),
-        statuses: selectedStatuses.join(',')
+        devices: selectedDevices === 'all' ? '1,2,3' : selectedDevices,
+        actions: selectedActions === 'all' ? 'Bật,Tắt' : selectedActions,
+        statuses: selectedStatuses === 'all' ? 'Thành công,Thất bại,Chờ' : selectedStatuses
       });
 
       const response = await fetch(`http://localhost:5000/api/actions/history?${queryParams.toString()}`);
@@ -139,20 +143,18 @@ export default function ActionHistory() {
 
             <div className="dropdown-container" ref={deviceRef}>
               <button className={`pill-btn-dropdown ${showDeviceMenu ? 'active' : ''}`} onClick={() => setShowDeviceMenu(!showDeviceMenu)}>
-                Tất cả thiết bị <ChevronDown size={16} />
+                {getDeviceLabel()} <ChevronDown size={16} />
               </button>
               {showDeviceMenu && (
                 <div className="dropdown-menu filter-menu">
-                   <div className={`filter-checkbox-item ${selectedDevices.length === deviceOptions.length ? 'selected' : ''}`} 
-                        onClick={() => toggleFilter('all', selectedDevices, setSelectedDevices, deviceOptions.map(o=>o.id))}>
-                     <div className="custom-checkbox"></div>
-                     <span style={{fontWeight: 800, color: 'var(--primary-blue)'}}>Tất cả</span>
+                   <div className={`single-select-item ${selectedDevices === 'all' ? 'selected' : ''}`} 
+                        onClick={() => { setSelectedDevices('all'); setCurrentPage(1); setShowDeviceMenu(false); }}>
+                     <span>Tất cả thiết bị</span>
                    </div>
                    <div className="filter-section-divider"></div>
                    {deviceOptions.map(opt => (
-                      <div key={opt.id} className={`filter-checkbox-item ${selectedDevices.includes(opt.id) ? 'selected' : ''}`}
-                        onClick={() => toggleFilter(opt.id, selectedDevices, setSelectedDevices, deviceOptions.map(o=>o.id))}>
-                        <div className="custom-checkbox"></div>
+                      <div key={opt.id} className={`single-select-item ${selectedDevices === opt.id ? 'selected' : ''}`}
+                        onClick={() => { setSelectedDevices(opt.id); setCurrentPage(1); setShowDeviceMenu(false); }}>
                         <span>{opt.label}</span>
                       </div>
                    ))}
@@ -160,22 +162,21 @@ export default function ActionHistory() {
               )}
             </div>
 
+            {/* 2. MENU HÀNH ĐỘNG */}
             <div className="dropdown-container" ref={actionRef}>
               <button className={`pill-btn-dropdown ${showActionMenu ? 'active' : ''}`} onClick={() => setShowActionMenu(!showActionMenu)}>
-                Tất cả hành động <ChevronDown size={16} />
+                {getActionLabel()} <ChevronDown size={16} />
               </button>
               {showActionMenu && (
                 <div className="dropdown-menu filter-menu">
-                   <div className={`filter-checkbox-item ${selectedActions.length === actionOptions.length ? 'selected' : ''}`} 
-                        onClick={() => toggleFilter('all', selectedActions, setSelectedActions, actionOptions.map(o=>o.id))}>
-                     <div className="custom-checkbox"></div>
-                     <span style={{fontWeight: 800, color: 'var(--primary-blue)'}}>Tất cả</span>
+                   <div className={`single-select-item ${selectedActions === 'all' ? 'selected' : ''}`} 
+                        onClick={() => { setSelectedActions('all'); setCurrentPage(1); setShowActionMenu(false); }}>
+                     <span>Tất cả hành động</span>
                    </div>
                    <div className="filter-section-divider"></div>
                    {actionOptions.map(opt => (
-                      <div key={opt.id} className={`filter-checkbox-item ${selectedActions.includes(opt.id) ? 'selected' : ''}`}
-                        onClick={() => toggleFilter(opt.id, selectedActions, setSelectedActions, actionOptions.map(o=>o.id))}>
-                        <div className="custom-checkbox"></div>
+                      <div key={opt.id} className={`single-select-item ${selectedActions === opt.id ? 'selected' : ''}`}
+                        onClick={() => { setSelectedActions(opt.id); setCurrentPage(1); setShowActionMenu(false); }}>
                         <span>{opt.label}</span>
                       </div>
                    ))}
@@ -183,21 +184,21 @@ export default function ActionHistory() {
               )}
             </div>
 
+            {/* 3. MENU TRẠNG THÁI */}
             <div className="dropdown-container" ref={statusRef}>
               <button className={`pill-btn-dropdown ${showStatusMenu ? 'active' : ''}`} onClick={() => setShowStatusMenu(!showStatusMenu)}>
-                Tất cả trạng thái <ChevronDown size={16} />
+                {getStatusLabel()} <ChevronDown size={16} />
               </button>
               {showStatusMenu && (
                 <div className="dropdown-menu filter-menu">
-                   <div className={`filter-checkbox-item ${selectedStatuses.length === statusOptions.length ? 'selected' : ''}`} 
-                        onClick={() => toggleFilter('all', selectedStatuses, setSelectedStatuses, statusOptions.map(o=>o.id))}>
-                     <div className="custom-checkbox"></div><span style={{fontWeight: 800, color: 'var(--primary-blue)'}}>Tất cả</span>
+                   <div className={`single-select-item ${selectedStatuses === 'all' ? 'selected' : ''}`} 
+                        onClick={() => { setSelectedStatuses('all'); setCurrentPage(1); setShowStatusMenu(false); }}>
+                     <span>Tất cả trạng thái</span>
                    </div>
                    <div className="filter-section-divider"></div>
                    {statusOptions.map(opt => (
-                      <div key={opt.id} className={`filter-checkbox-item ${selectedStatuses.includes(opt.id) ? 'selected' : ''}`}
-                        onClick={() => toggleFilter(opt.id, selectedStatuses, setSelectedStatuses, statusOptions.map(o=>o.id))}>
-                        <div className="custom-checkbox"></div>
+                      <div key={opt.id} className={`single-select-item ${selectedStatuses === opt.id ? 'selected' : ''}`}
+                        onClick={() => { setSelectedStatuses(opt.id); setCurrentPage(1); setShowStatusMenu(false); }}>
                         <span>{opt.label}</span>
                       </div>
                    ))}
@@ -258,8 +259,16 @@ export default function ActionHistory() {
 
           <div className="pagination-wrapper">
             <div className="limit-selector">
-              <button className="apply-limit-btn" onClick={applyLimit}>Hiển thị:</button>
-              <input type="number" min="1" max="1000" value={limitInput} onChange={handleLimitChange} className="limit-input" />
+              <span className="limit-label">Hiển thị</span>
+              <input 
+                type="number" 
+                min="1" max="1000" 
+                value={limitInput} 
+                onChange={handleLimitChange} 
+                onKeyDown={(e) => { if (e.key === 'Enter') applyLimit(); }} 
+                onBlur={applyLimit} 
+                className="limit-input" 
+              />
               <span>dữ liệu trong tổng số {totalItems} bản ghi</span>
             </div>
             <div className="page-buttons">

@@ -44,7 +44,6 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Thông tin liên hệ */}
             <div className="contact-list">
               <div className="contact-item">
                 <GraduationCap size={18} className="contact-icon" />
@@ -113,7 +112,7 @@ export default function Profile() {
                   </div>
                 </a>
 
-                <a href="#" className="doc-card" /*target='_blank'*/>
+                <a href="https://drive.google.com/file/d/1-CkrdSaI7DkVVXML42f6-9nxHEkNgM_S/view?usp=sharing" className="doc-card" target='_blank'>
                   <div className="doc-icon-box bg-light-orange">
                     <FileText />
                   </div>
@@ -123,7 +122,7 @@ export default function Profile() {
                   </div>
                 </a>
 
-                <a href="#" className="doc-card" /*target='_blank'*/>
+                <a href="https://documenter.getpostman.com/view/52723896/2sBXigNDp7" className="doc-card" target='_blank'>
                   <div className="doc-icon-box bg-light-orange">
                     <Send size={20} /> 
                   </div>

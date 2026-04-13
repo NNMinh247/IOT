@@ -53,6 +53,7 @@ client.on('message', async (topic, message) => {
 
             const [pendingRows] = await db.execute(`SELECT id, iddv, action FROM action_history WHERE status = 'Chờ'`);
 
+            let resolvedDevices = [];
             if (data.result === 'success') {
                 for (let r of pendingRows) {
                     let isMatched = false;
@@ -63,16 +64,21 @@ client.on('message', async (topic, message) => {
 
                     if (isMatched) {
                         await db.execute(`UPDATE action_history SET status = 'Thành công' WHERE id = ?`, [r.id]);
+                        resolvedDevices.push(r.iddv);
                     }
                 }
             } else {
                 for (let r of pendingRows) {
                     await db.execute(`UPDATE action_history SET status = 'Thất bại' WHERE id = ?`, [r.id]);
+                    resolvedDevices.push(r.iddv);
                 }
             }
 
             if (socketIo) {
-                socketIo.emit('device_status_update', data);
+                socketIo.emit('device_status_update', {
+                    ...data,
+                    resolvedDevices: resolvedDevices
+                });
             }
         }
 

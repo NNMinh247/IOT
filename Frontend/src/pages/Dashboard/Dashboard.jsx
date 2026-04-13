@@ -88,7 +88,18 @@ export default function Dashboard() {
         pump: response.led2 === "ON",
         light: response.led3 === "ON"
       });
-      setLoadingDevices({ fan: false, pump: false, light: false });
+
+      if (response.resolvedDevices && response.resolvedDevices.length > 0) {
+        setLoadingDevices(prevLoading => {
+          const newLoading = { ...prevLoading }; 
+          
+          if (response.resolvedDevices.includes(1)) newLoading.fan = false;
+          if (response.resolvedDevices.includes(2)) newLoading.pump = false;
+          if (response.resolvedDevices.includes(3)) newLoading.light = false;
+
+          return newLoading;
+        });
+      }
     });
 
     return () => {

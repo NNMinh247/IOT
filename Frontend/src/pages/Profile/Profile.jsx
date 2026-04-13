@@ -118,7 +118,7 @@ export default function Profile() {
                   </div>
                   <div className="doc-info">
                     <span className="doc-name">Báo cáo PDF</span>
-                    <span className="doc-desc">Đồ án môn học</span>
+                    <span className="doc-desc">Báo cáo môn học</span>
                   </div>
                 </a>
 
